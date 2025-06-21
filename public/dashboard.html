@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Pantry Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/public/styles/dashboard.css"/>
+  <link rel="icon" type="image/png" href="/public/images/favicon.png">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <span class="logo">Smart Pantry</span>
+    <div class="nav-links">
+      <a href="/public/dashboard.html" class="active"><i class="fa fa-home"></i> Dashboard</a>
+      <a href="/public/shopping-list.html"><i class="fa fa-list"></i> Shopping List</a>
+      <a href="/public/notification.html"><i class="fa fa-bell"></i> Notifications <span class="notif-dot">3</span></a>
+      <a href="/public/settings.html"><i class="fa fa-cog"></i> Settings</a>
+    </div>
+    <div class="nav-actions">
+      <button class="add-btn">+ Add Item</button>
+      <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="avatar"/>
+    </div>
+  </nav>
+
+  <!-- Main Dashboard -->
+  <main>
+    <section class="dashboard-container">
+      <h1>My Pantry Dashboard</h1>
+      <p class="subtitle">Track your pantry items and never waste food again</p>
+      <div class="search-filter-row">
+        <input type="text" class="search-input" placeholder="Search pantry items..."/>
+        <select class="filter-select">
+          <option>All Categories</option>
+        </select>
+        <select class="filter-select">
+          <option>All Status</option>
+        </select>
+      </div>
+      <div class="summary-cards">
+        <div class="summary-card">
+          <div class="summary-title">Total Items</div>
+          <div class="summary-value">24</div>
+          <div class="summary-icon bg-blue"><i class="fa fa-archive"></i></div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-title">Fresh Items</div>
+          <div class="summary-value green">18</div>
+          <div class="summary-icon bg-green"><i class="fa fa-check-circle"></i></div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-title">Expiring Soon</div>
+          <div class="summary-value orange">4</div>
+          <div class="summary-icon bg-orange"><i class="fa fa-exclamation-circle"></i></div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-title">Expired</div>
+          <div class="summary-value red">2</div>
+          <div class="summary-icon bg-red"><i class="fa fa-exclamation"></i></div>
+        </div>
+      </div>
+      <div class="pantry-grid">
+        <!-- Pantry Item Cards -->
+        <div class="pantry-card">
+          <div class="card-header">
+            <span class="item-name">Milk</span>
+            <span class="badge fresh">Fresh</span>
+          </div>
+          <div class="card-body">
+            <div>Quantity: <b>2 L</b></div>
+            <div>Expires: <b>Dec 20, 2024</b></div>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" title="Edit"><i class="fa fa-pen"></i></button>
+            <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="pantry-card">
+          <div class="card-header">
+            <span class="item-name">Bread</span>
+            <span class="badge expiring">2 days</span>
+          </div>
+          <div class="card-body">
+            <div>Quantity: <b>1 loaf</b></div>
+            <div>Expires: <b>Dec 14, 2024</b></div>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" title="Edit"><i class="fa fa-pen"></i></button>
+            <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="pantry-card">
+          <div class="card-header">
+            <span class="item-name">Apples</span>
+            <span class="badge fresh">Fresh</span>
+          </div>
+          <div class="card-body">
+            <div>Quantity: <b>6 pcs</b></div>
+            <div>Expires: <b>Dec 25, 2024</b></div>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" title="Edit"><i class="fa fa-pen"></i></button>
+            <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="pantry-card">
+          <div class="card-header">
+            <span class="item-name">Yogurt</span>
+            <span class="badge expired">Expired</span>
+          </div>
+          <div class="card-body">
+            <div>Quantity: <b>500g</b></div>
+            <div>Expires: <b>Dec 10, 2024</b></div>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" title="Edit"><i class="fa fa-pen"></i></button>
+            <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="pantry-card">
+          <div class="card-header">
+            <span class="item-name">Chicken Breast</span>
+            <span class="badge expiring">1 day</span>
+          </div>
+          <div class="card-body">
+            <div>Quantity: <b>1 kg</b></div>
+            <div>Expires: <b>Dec 13, 2024</b></div>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" title="Edit"><i class="fa fa-pen"></i></button>
+            <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="pantry-card">
+          <div class="card-header">
+            <span class="item-name">Rice</span>
+            <span class="badge fresh">Fresh</span>
+          </div>
+          <div class="card-body">
+            <div>Quantity: <b>5 kg</b></div>
+            <div>Expires: <b>Jun 15, 2025</b></div>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" title="Edit"><i class="fa fa-pen"></i></button>
+            <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <!-- Add Item Modal -->
+<div id="addItemModal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <h2>Add New Pantry Item</h2>
+    <form id="addItemForm">
+      <label>
+        Item Name:
+        <input type="text" id="itemName" required />
+      </label>
+      <label>
+        Quantity:
+        <input type="text" id="itemQty" required />
+      </label>
+      <label>
+        Expiry Date:
+        <input type="date" id="itemExpiry" required />
+      </label>
+      <div class="modal-actions">
+        <button type="submit" class="view-btn">Add</button>
+        <button type="button" class="dismiss-btn" id="cancelAddItem">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  <!-- Edit Item Modal -->
+  <div id="editItemModal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h2>Edit Pantry Item</h2>
+      <form id="editItemForm">
+        <label>
+          Item Name:
+          <input type="text" id="editItemName" required />
+        </label>
+        <label>
+          Quantity:
+          <input type="text" id="editItemQty" required />
+        </label>
+        <label>
+          Expiry Date:
+          <input type="date" id="editItemExpiry" required />
+        </label>
+        <div class="modal-actions">
+          <button type="submit" class="view-btn">Save Changes</button>
+          <button type="button" class="dismiss-btn" id="cancelEditItem">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="/public/scripts/dashboard.js"></script>
+</body>
+</html>

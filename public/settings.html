@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings | Smart Pantry</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/public/styles/settings.css"/>
+  <link rel="icon" type="image/png" href="/public/images/favicon.png">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <span class="logo">Smart Pantry</span>
+    <div class="nav-links">
+      <a href="/public/dashboard.html"><i class="fa fa-home"></i> Dashboard</a>
+      <a href="/public/shopping-list.html"><i class="fa fa-list"></i> Shopping List</a>
+      <a href="/public/notification.html"><i class="fa fa-bell"></i> Notifications <span class="notif-dot">3</span></a>
+      <a href="/public/settings.html" class="active"><i class="fa fa-cog"></i> Settings</a>
+    </div>
+    <div class="nav-actions">
+      <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="avatar"/>
+    </div>
+  </nav>
+
+  <main class="settings-container">
+    <header>
+      <h1>Settings</h1>
+      <p>Manage your account and preferences</p>
+    </header>
+
+    <!-- Profile Information -->
+    <section class="settings-card">
+      <div class="card-header">
+        <div class="profile-pic-container">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Profile" class="profile-pic" id="profilePic"/>
+          <label for="profilePicInput" class="change-pic-label"><i class="fa fa-camera"></i></label>
+          <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
+        </div>
+        <div>
+          <h2>Profile Information</h2>
+          <p>Update your personal details</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" value="sarah.wilson">
+        </div>
+      </div>
+    </section>
+
+    <!-- Security -->
+    <section class="settings-card">
+        <div class="card-header">
+          <div>
+            <h2>Password & Security</h2>
+            <p>Manage your password</p>
+          </div>
+        </div>
+        <div class="card-body form-grid">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" id="currentPassword" placeholder="Enter current password">
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" placeholder="Enter new password">
+          </div>
+        </div>
+      </section>
+
+    <!-- Preferences -->
+    <section class="settings-card">
+      <div class="card-header">
+        <div>
+          <h2>Preferences</h2>
+          <p>Customize your pantry management experience</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="lowStockThreshold">Low Stock Threshold</label>
+          <div class="range-slider">
+            <input type="range" id="lowStockThreshold" min="1" max="10" value="3">
+            <span class="range-value" id="lowStockValue">3 days</span>
+          </div>
+          <p class="form-hint">Alert when items are running low or will expire within this timeframe</p>
+        </div>
+        <div class="form-group">
+          <label for="expiryAlertWindow">Expiry Alert Window</label>
+          <div class="input-with-label">
+            <input type="number" id="expiryAlertWindow" value="7" min="1">
+            <span>days before expiry</span>
+          </div>
+          <p class="form-hint">Get notified when items are about to expire</p>
+        </div>
+        <div class="form-group-inline">
+          <div>
+            <label>Email Notifications</label>
+            <p class="form-hint">Receive alerts via email</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="emailNotifications" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Danger Zone -->
+    <section class="settings-card">
+      <div class="card-header">
+        <div>
+          <h2>Danger Zone</h2>
+          <p>Irreversible and destructive actions</p>
+        </div>
+      </div>
+      <div class="card-body danger-zone">
+        <div class="danger-item">
+            <div>
+                <h3>Delete Account</h3>
+                <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+            </div>
+          <button class="delete-btn" id="deleteAccountBtn">Delete Account</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Action Buttons -->
+    <footer class="settings-footer">
+      <span class="last-updated">Last updated: 2 hours ago</span>
+      <div>
+        <button class="secondary-btn" id="resetBtn">Reset Changes</button>
+        <button class="primary-btn" id="saveBtn">Save Changes</button>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Delete Account Modal -->
+  <div id="deleteAccountModal" class="modal-overlay">
+    <div class="modal">
+      <h2>Delete Account</h2>
+      <p>This is a permanent action. All your data will be lost. To confirm, please type <strong>DELETE</strong> in the box below.</p>
+      <input type="text" id="deleteConfirmInput" placeholder="Type DELETE to confirm">
+      <div class="modal-actions">
+        <button class="secondary-btn" id="cancelDeleteBtn">Cancel</button>
+        <button class="delete-btn" id="confirmDeleteBtn" disabled>Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/public/scripts/settings.js"></script>
+</body>
+</html> 

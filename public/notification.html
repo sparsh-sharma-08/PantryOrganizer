@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Pantry - Notifications</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/public/styles/notification.css"/>
+  <link rel="icon" type="image/png" href="/public/images/favicon.png">
+</head>
+<body>
+  <nav class="navbar">
+    <span class="logo">Smart Pantry</span>
+    <div class="nav-links">
+      <a href="/public/index.html"><i class="fa fa-home"></i> Home</a>
+      <a href="/public/shopping-list.html"><i class="fa fa-list"></i> List</a>
+      <a href="/public/notification.html" class="active"><i class="fa fa-bell"></i> Notifications</a>
+      <a href="/public/settings.html"><i class="fa fa-cog"></i> Settings</a>
+    </div>
+    <button class="add-btn">+ Add Item</button>
+  </nav>
+  <main>
+    <section class="notifications-container">
+      <h1>Notifications</h1>
+      <p class="subtitle">Stay updated with your pantry alerts and reminders</p>
+      <div class="notification-list">
+        <!-- Notification Card 1 -->
+        <div class="notification-card warning">
+          <div class="icon"><i class="fa fa-exclamation-triangle"></i></div>
+          <div class="content">
+            <div class="title">Milk expires tomorrow</div>
+            <div class="message">Your milk (2 liters) will expire on Dec 13, 2024. Consider using it soon or adding it to your shopping list.</div>
+            <div class="time"><i class="fa fa-clock"></i> 2 hours ago</div>
+            <div class="detailed-info">
+              <p><strong>Item:</strong> Whole Milk</p>
+              <p><strong>Brand:</strong> Organic Valley</p>
+              <p><strong>Purchase Date:</strong> Dec 6, 2024</p>
+              <p><strong>Location:</strong> Fridge Door</p>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="view-btn">View</button>
+            <button class="dismiss-btn">Dismiss</button>
+          </div>
+        </div>
+        <!-- Notification Card 2 -->
+        <div class="notification-card error">
+          <div class="icon"><i class="fa fa-times-circle"></i></div>
+          <div class="content">
+            <div class="title">Eggs expired</div>
+            <div class="message">Your eggs (12 pieces) expired on Dec 10, 2024. Please dispose of them safely and add eggs to your shopping list.</div>
+            <div class="time"><i class="fa fa-clock"></i> 1 day ago</div>
+            <div class="detailed-info">
+              <p><strong>Item:</strong> Large White Eggs</p>
+              <p><strong>Purchase Date:</strong> Nov 25, 2024</p>
+              <p><strong>Action:</strong> Item removed from pantry. Add to shopping list?</p>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="view-btn">View</button>
+            <button class="dismiss-btn">Dismiss</button>
+          </div>
+        </div>
+        <!-- Notification Card 3 -->
+        <div class="notification-card info">
+          <div class="icon"><i class="fa fa-info-circle"></i></div>
+          <div class="content">
+            <div class="title">Low stock alert</div>
+            <div class="message">You're running low on bread (1 loaf remaining). Consider adding it to your shopping list.</div>
+            <div class="time"><i class="fa fa-clock"></i> 3 days ago</div>
+            <div class="detailed-info">
+              <p><strong>Item:</strong> Sourdough Bread</p>
+              <p><strong>Remaining:</strong> 1 loaf (approx. 250g)</p>
+              <p><strong>Suggestion:</strong> Add to your shopping list to restock.</p>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="view-btn">View</button>
+            <button class="dismiss-btn">Dismiss</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="/public/scripts/notification.js"></script>
+</body>
+</html>

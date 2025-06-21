@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shopping List | Smart Pantry</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/public/styles/shopping-list.css"/>
+  <link rel="icon" type="image/png" href="/public/images/favicon.png">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <span class="logo">Smart Pantry</span>
+    <div class="nav-links">
+      <a href="/public/dashboard.html"><i class="fa fa-home"></i> Dashboard</a>
+      <a href="/public/shopping-list.html" class="active"><i class="fa fa-list"></i> Shopping List</a>
+      <a href="/public/notification.html"><i class="fa fa-bell"></i> Notifications <span class="notif-dot">3</span></a>
+      <a href="/public/settings.html"><i class="fa fa-cog"></i> Settings</a>
+    </div>
+    <div class="nav-actions">
+      <button class="add-btn">+ Add Item</button>
+      <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="avatar"/>
+    </div>
+  </nav>
+
+  <main>
+    <section class="shopping-list-container">
+      <h1>Shopping List</h1>
+      <p class="subtitle">Never forget what you need to buy</p>
+      <div class="shopping-list-actions">
+        <button class="primary-btn" id="generateListBtn"><i class="fa fa-sync"></i> Generate New List</button>
+        <button class="secondary-btn" id="clearListBtn"><i class="fa fa-trash"></i> Clear List</button>
+        <span class="list-summary"><span id="itemCount">8</span> items &bull; <span id="completedCount">3</span> completed</span>
+      </div>
+      <div class="shopping-list-items" id="shoppingList">
+        <!-- Items will be rendered here by JS -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Add Item Modal -->
+  <div id="addItemModal" class="modal-overlay">
+    <div class="modal">
+      <h2>Add to Shopping List</h2>
+      <form id="addItemForm">
+        <label>
+          Item Name:
+          <input type="text" id="itemName" placeholder="e.g., Flour" required />
+        </label>
+        <label>
+          Quantity Needed:
+          <input type="text" id="itemNeed" placeholder="e.g., 1 kg" required />
+        </label>
+        <label>
+          Expiry Date (optional):
+          <input type="date" id="itemExpiry" />
+        </label>
+        <label>
+          Current Status / Notes (optional):
+          <input type="text" id="itemStatus" placeholder="e.g., Running low" />
+        </label>
+        <div class="modal-actions">
+          <button type="submit" class="primary-btn">Add Item</button>
+          <button type="button" class="secondary-btn" id="cancelAddItem">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/public/scripts/shopping-list.js"></script>
+</body>
+</html> 
