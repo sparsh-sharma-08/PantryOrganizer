@@ -3,38 +3,138 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Shopping List | Smart Pantry</title>
+  <title>Shopping List - Smart Pantry</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <link rel="stylesheet" href="/public/styles/shopping-list.css"/>
-  <link rel="icon" type="image/png" href="/public/images/favicon.png">
+  <link rel="stylesheet" href="/styles/shopping-list.css"/>
+  <link rel="icon" type="image/png" href="/images/favicon.png">
 </head>
 <body>
   <!-- Navbar -->
   <nav class="navbar">
     <span class="logo">Smart Pantry</span>
     <div class="nav-links">
-      <a href="/public/dashboard.html"><i class="fa fa-home"></i> Dashboard</a>
-      <a href="/public/shopping-list.html" class="active"><i class="fa fa-list"></i> Shopping List</a>
-      <a href="/public/notification.html"><i class="fa fa-bell"></i> Notifications <span class="notif-dot">3</span></a>
-      <a href="/public/settings.html"><i class="fa fa-cog"></i> Settings</a>
+      <a href="/dashboard.html"><i class="fa fa-home"></i> Dashboard</a>
+      <a href="/shopping-list.html" class="active"><i class="fa fa-list"></i> Shopping List</a>
+      <a href="/notification.html"><i class="fa fa-bell"></i> Notifications <span class="notif-dot">3</span></a>
+      <a href="/settings.html"><i class="fa fa-cog"></i> Settings</a>
     </div>
     <div class="nav-actions">
-      <button class="add-btn">+ Add Item</button>
-      <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="avatar"/>
+      <a href="/settings.html" class="avatar-link">
+        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="avatar"/>
+      </a>
     </div>
   </nav>
 
+  <!-- Main Content -->
   <main>
-    <section class="shopping-list-container">
+    <section class="shopping-container">
       <h1>Shopping List</h1>
-      <p class="subtitle">Never forget what you need to buy</p>
-      <div class="shopping-list-actions">
-        <button class="primary-btn" id="generateListBtn"><i class="fa fa-sync"></i> Generate New List</button>
-        <button class="secondary-btn" id="clearListBtn"><i class="fa fa-trash"></i> Clear List</button>
-        <span class="list-summary"><span id="itemCount">8</span> items &bull; <span id="completedCount">3</span> completed</span>
+      <p class="subtitle">Keep track of items you need to buy</p>
+      
+      <div class="list-controls">
+        <button class="add-item-btn" id="addItemBtn">
+          <i class="fa fa-plus"></i>
+          Add New Item
+        </button>
       </div>
-      <div class="shopping-list-items" id="shoppingList">
-        <!-- Items will be rendered here by JS -->
+      
+      <div class="shopping-lists">
+        <div class="list-section">
+          <h2>To Buy <span class="item-count">3</span></h2>
+          <div class="item-list" id="toBuyList">
+            <div class="item-card">
+              <div class="item-info">
+                <div class="item-main">
+                  <span class="item-name">Milk</span>
+                  <span class="item-quantity">2 L</span>
+                </div>
+                <div class="item-details">
+                  <span class="item-expiry">Expires: 1/15/2024</span>
+                  <span class="item-notes">For coffee</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
+                <button class="bought-btn" title="Mark as bought"><i class="fa fa-check"></i></button>
+                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+              </div>
+            </div>
+            <div class="item-card">
+              <div class="item-info">
+                <div class="item-main">
+                  <span class="item-name">Bread</span>
+                  <span class="item-quantity">1 loaf</span>
+                </div>
+                <div class="item-details">
+                  <span class="item-expiry">Expires: 1/10/2024</span>
+                  <span class="item-notes">Whole wheat</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
+                <button class="bought-btn" title="Mark as bought"><i class="fa fa-check"></i></button>
+                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+              </div>
+            </div>
+            <div class="item-card">
+              <div class="item-info">
+                <div class="item-main">
+                  <span class="item-name">Apples</span>
+                  <span class="item-quantity">6 pcs</span>
+                </div>
+                <div class="item-details">
+                  <span class="item-expiry">Expires: 1/20/2024</span>
+                  <span class="item-notes">Organic</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
+                <button class="bought-btn" title="Mark as bought"><i class="fa fa-check"></i></button>
+                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="list-section">
+          <h2>Bought <span class="item-count">2</span></h2>
+          <div class="item-list" id="boughtList">
+            <div class="item-card bought">
+              <div class="item-info">
+                <div class="item-main">
+                  <span class="item-name">Yogurt</span>
+                  <span class="item-quantity">500g</span>
+                </div>
+                <div class="item-details">
+                  <span class="item-expiry">Expires: 1/8/2024</span>
+                  <span class="item-notes">Greek style</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
+                <button class="undo-btn" title="Move back to list"><i class="fa fa-undo"></i></button>
+                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+              </div>
+            </div>
+            <div class="item-card bought">
+              <div class="item-info">
+                <div class="item-main">
+                  <span class="item-name">Cheese</span>
+                  <span class="item-quantity">200g</span>
+                </div>
+                <div class="item-details">
+                  <span class="item-expiry">Expires: 1/25/2024</span>
+                  <span class="item-notes">Cheddar</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
+                <button class="undo-btn" title="Move back to list"><i class="fa fa-undo"></i></button>
+                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -57,8 +157,8 @@
           <input type="date" id="itemExpiry" />
         </label>
         <label>
-          Current Status / Notes (optional):
-          <input type="text" id="itemStatus" placeholder="e.g., Running low" />
+          Notes (optional):
+          <input type="text" id="itemStatus" placeholder="e.g., Running low, brand preference, etc." />
         </label>
         <div class="modal-actions">
           <button type="submit" class="primary-btn">Add Item</button>
@@ -68,6 +168,7 @@
     </div>
   </div>
 
-  <script src="/public/scripts/shopping-list.js"></script>
+  <script src="/scripts/navbar.js"></script>
+  <script src="/scripts/shopping-list.js"></script>
 </body>
 </html> 

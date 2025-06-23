@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pantry Manager</title>
-  <link rel="stylesheet" href="/public/styles/main.css" />
-  <link rel="icon" type="image/png" href="/public/images/favicon.png">
+  <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
   <script src="https://kit.fontawesome.com/575a764c98.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -13,26 +13,33 @@
   <header>
     <h1 class="logo">Smart Pantry</h1>
 
-    <div class="landingLinks">
-      <a href="/public/index.html">Features</a>
-      <a href="/public/index.html">Testimonials</a>
-      <a href="/public/index.html">Contact</a>
+    <div class="landingLinks" id="navLinks">
+      <a href="#features">Features</a>
+      <a href="#testimonials">Testimonials</a>
+      <a href="#contact">Contact</a>
+      <div class="mobileRegestration">
+        <a href="/login.html" class="login">Login</a>
+        <a href="/signup.html" class="signUp">Sign Up</a>
+      </div>
     </div>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation" aria-controls="navLinks" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
 
     <div class="userRegestration">
-      <a href="/public/login.html" class="login">Login</a>
-      <a href="/public/signup.html" class="signUp">Sign Up</a>
+      <a href="/login.html" class="login">Login</a>
+      <a href="/signup.html" class="signUp">Sign Up</a>
     </div>
   </header>
 
   <!-- Main Content -->
-  <section class="main">
+  <section class="main" id="features">
     <h1 class="mainHeading">Smart Pantry Management Made Simple</h1>
-    <img src="/public/images/landingImage.png" alt="" class="landingImg">
+    <img src="/images/landingImage.png" alt="" class="landingImg">
     <p class="supportingHeading">Never waste food again. Track expiration dates, generate smart shopping lists, and manage your pantry like a pro.</p>
 
     <div class="hero-buttons">
-      <button class="callForAction">Get Started Free</button>
+      <button class="callForAction" onclick="window.location.href='/signup.html'">Get Started Free</button>
       <button class="watchDemo">Watch Demo</button>
     </div>
 
@@ -72,6 +79,31 @@
     </div>
   </section>
 
+  <!-- Testimonials Section -->
+  <section class="testimonials" id="testimonials" aria-label="Testimonials">
+    <h2>What Our Users Say</h2>
+    <div class="testimonial-cards">
+      <div class="testimonial-card">
+        <p>"Smart Pantry has changed the way I shop and cook. No more wasted food!"</p>
+        <span>- Priya S.</span>
+      </div>
+      <div class="testimonial-card">
+        <p>"The notifications are a lifesaver. I always know what's about to expire."</p>
+        <span>- Alex R.</span>
+      </div>
+      <div class="testimonial-card">
+        <p>"The dashboard is so easy to use. My pantry is finally organized!"</p>
+        <span>- Jamie L.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="contact" id="contact" aria-label="Contact">
+    <h2>Contact Us</h2>
+    <p>Have questions or feedback? <a href="mailto:support@smartpantry.com">Email us</a> and we'll get back to you soon!</p>
+  </section>
+
   <!-- Footer Section -->
   <footer>
     <div class="footerTop">
@@ -85,15 +117,15 @@
 
     <div class="wrapper2">
       <p class="Account">Account</p>
-      <a href="#" id="firstA">Login</a>
-      <a href="#">Sign Up</a>
-      <a href="#">Reset Password</a>
+      <a href="/login.html" id="firstA">Login</a>
+      <a href="/signup.html">Sign Up</a>
+      <a href="/dashboard.html">Reset Password</a>
     </div>
 
     <div class="wrapper3">
       <p class="Legal"> Legal </p>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
+        <a href="/privacy-policy.html">Privacy Policy</a>
+        <a href="/terms-of-service.html">Terms of Service</a>
         <a href="#">Cookie Policy</a>
       </div>
       </div>
@@ -104,7 +136,31 @@
   </footer>
 
   <!-- Javascript Links -->
-  <script src="/public/scripts/app.js" type="module"></script>
+  <script src="/scripts/app.js" type="module"></script>
+  <script>
+    // Hamburger menu toggle
+    const hamburger = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+    hamburger.addEventListener('click', function() {
+      navLinks.classList.toggle('open');
+      hamburger.classList.toggle('open');
+      const expanded = hamburger.getAttribute('aria-expanded') === 'true';
+      hamburger.setAttribute('aria-expanded', !expanded);
+    });
+    // Smooth scroll for nav links
+    document.querySelectorAll('.landingLinks a').forEach(link => {
+      link.addEventListener('click', function(e) {
+        if(this.hash) {
+          e.preventDefault();
+          document.querySelector(this.hash).scrollIntoView({ behavior: 'smooth' });
+          // Close nav on mobile after click
+          navLinks.classList.remove('open');
+          hamburger.classList.remove('open');
+          hamburger.setAttribute('aria-expanded', 'false');
+        }
+      });
+    });
+  </script>
   
 </body>
 </html>

@@ -80,14 +80,32 @@ body {
   font-size: 1rem;
 }
 
+/* === Password Input Wrapper === */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 3rem; /* Make room for the icon */
+}
+
 /* === Password Toggle Icon === */
 .password-group .toggle-password {
   position: absolute;
-  top: 50%;
   right: 1rem;
+  top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
   color: #888;
+  font-size: 1.1rem;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.password-group .toggle-password:hover {
+  color: var(--primary);
 }
 
 /* === Submit Button === */
@@ -102,6 +120,11 @@ body {
   font-weight: 600;
   cursor: pointer;
   margin-top: var(--spacing);
+  transition: background-color 0.2s ease;
+}
+
+.btn.submit-btn:hover {
+  background-color: #1a7bd9;
 }
 
 /* === Footer Text === */

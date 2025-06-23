@@ -1,184 +1,242 @@
-// Demo data for shopping list
-const demoItems = [
-  {
-    name: 'Milk',
-    current: '500ml remaining',
-    expiring: true,
-    expired: false,
-    need: '2 L',
-    completed: false
-  },
-  {
-    name: 'Bread',
-    current: 'None',
-    expiring: false,
-    expired: false,
-    need: '1 loaf',
-    completed: true
-  },
-  {
-    name: 'Bananas',
-    current: 'None',
-    expiring: false,
-    expired: false,
-    need: '6 pcs',
-    completed: false
-  },
-  {
-    name: 'Yogurt',
-    current: 'Expired item',
-    expiring: false,
-    expired: true,
-    need: '500g',
-    completed: true
-  },
-  {
-    name: 'Chicken Breast',
-    current: '200g remaining',
-    expiring: true,
-    expired: false,
-    need: '1 kg',
-    completed: false
-  },
-  {
-    name: 'Eggs',
-    current: '3 remaining',
-    expiring: false,
-    expired: false,
-    need: '12 pcs',
-    completed: false
-  },
-  {
-    name: 'Tomatoes',
-    current: 'None',
-    expiring: false,
-    expired: false,
-    need: '1 kg',
-    completed: true
-  },
-  {
-    name: 'Olive Oil',
-    current: 'Running low',
-    expiring: false,
-    expired: false,
-    need: '500ml',
-    completed: false
-  }
+// Shopping list functionality
+let toBuyItems = [
+  { name: 'Milk', quantity: '2 L', expiryDate: '2024-01-15', notes: 'For coffee' },
+  { name: 'Bread', quantity: '1 loaf', expiryDate: '2024-01-10', notes: 'Whole wheat' },
+  { name: 'Apples', quantity: '6 pcs', expiryDate: '2024-01-20', notes: 'Organic' }
 ];
 
-let items = [];
+let boughtItems = [
+  { name: 'Yogurt', quantity: '500g', expiryDate: '2024-01-08', notes: 'Greek style' },
+  { name: 'Cheese', quantity: '200g', expiryDate: '2024-01-25', notes: 'Cheddar' }
+];
 
+// DOM elements
+const itemInput = document.getElementById('itemInput');
+const addItemBtn = document.getElementById('addItemBtn');
+const toBuyList = document.getElementById('toBuyList');
+const boughtList = document.getElementById('boughtList');
+
+// Modal elements
 const addItemModal = document.getElementById('addItemModal');
 const addItemForm = document.getElementById('addItemForm');
 const cancelAddItemBtn = document.getElementById('cancelAddItem');
-const addBtn = document.querySelector('.add-btn');
 
-function showModal() {
+// Modal state
+let isEditing = false;
+let editingIndex = -1;
+let editingList = '';
+
+// Modal functions
+function showModal(item = null, index = -1, list = '') {
+  isEditing = item !== null;
+  editingIndex = index;
+  editingList = list;
+  
   addItemModal.classList.add('visible');
   addItemForm.reset();
+  
+  if (isEditing && item) {
+    // Fill form with existing data
+    document.getElementById('itemName').value = item.name;
+    document.getElementById('itemNeed').value = item.quantity;
+    document.getElementById('itemExpiry').value = item.expiryDate || '';
+    document.getElementById('itemStatus').value = item.notes || '';
+    
+    // Update modal title and button
+    document.querySelector('.modal h2').textContent = 'Update Shopping Item';
+    document.querySelector('.primary-btn').textContent = 'Update Item';
+  } else {
+    // Reset modal for adding new item
+    document.querySelector('.modal h2').textContent = 'Add to Shopping List';
+    document.querySelector('.primary-btn').textContent = 'Add Item';
+  }
+  
   document.getElementById('itemName').focus();
 }
 
 function hideModal() {
   addItemModal.classList.remove('visible');
+  isEditing = false;
+  editingIndex = -1;
+  editingList = '';
 }
 
-addBtn.onclick = showModal;
-cancelAddItemBtn.onclick = hideModal;
-addItemModal.onclick = (e) => {
-  if (e.target === addItemModal) {
-    hideModal();
-  }
-};
+// Modal event listeners
+if (cancelAddItemBtn) {
+  cancelAddItemBtn.addEventListener('click', hideModal);
+}
 
-addItemForm.onsubmit = (e) => {
-  e.preventDefault();
-  const name = document.getElementById('itemName').value.trim();
-  const need = document.getElementById('itemNeed').value.trim();
-  const expiry = document.getElementById('itemExpiry').value;
-  const status = document.getElementById('itemStatus').value.trim();
-
-  if (!name || !need) return;
-
-  const newItem = {
-    name: name,
-    current: status || 'Newly added',
-    expiring: false,
-    expired: false,
-    need: need,
-    completed: false,
-    expiryDate: expiry || null
-  };
-  
-  // Check expiry date to set flags
-  if (newItem.expiryDate) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today's date
-    const expDate = new Date(newItem.expiryDate);
-    const diffTime = expDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-      newItem.expired = true;
-    } else if (diffDays <= 7) { // Let's say expiring soon is within a week
-      newItem.expiring = true;
+if (addItemModal) {
+  addItemModal.addEventListener('click', (e) => {
+    if (e.target === addItemModal) {
+      hideModal();
     }
-  }
-
-  items.unshift(newItem);
-  renderList();
-  updateSummary();
-  hideModal();
-};
-
-function renderList() {
-  const list = document.getElementById('shoppingList');
-  list.innerHTML = '';
-  items.forEach((item, idx) => {
-    const div = document.createElement('div');
-    div.className = 'shopping-item' + (item.completed ? ' completed' : '');
-    div.innerHTML = `
-      <input type="checkbox" id="item-${idx}" ${item.completed ? 'checked' : ''} />
-      <div class="item-details">
-        <span class="item-title">${item.name}</span>
-        <span class="item-status">Current: ${item.current}</span>
-        <div class="badges">
-          ${item.expiring ? '<span class="badge expiring">Expiring Soon</span>' : ''}
-          ${item.expired ? '<span class="badge expired">Expired</span>' : ''}
-          <span class="badge need">Need ${item.need}</span>
-        </div>
-      </div>
-    `;
-    div.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
-      item.completed = e.target.checked;
-      renderList();
-      updateSummary();
-    });
-    list.appendChild(div);
   });
 }
 
-function updateSummary() {
-  document.getElementById('itemCount').textContent = items.length;
-  document.getElementById('completedCount').textContent = items.filter(i => i.completed).length;
+if (addItemForm) {
+  addItemForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('itemName').value.trim();
+    const need = document.getElementById('itemNeed').value.trim();
+    const expiry = document.getElementById('itemExpiry').value;
+    const status = document.getElementById('itemStatus').value.trim();
+
+    if (!name || !need) return;
+
+    const newItem = {
+      name: name,
+      quantity: need,
+      expiryDate: expiry || null,
+      notes: status || ''
+    };
+
+    if (isEditing) {
+      // Update existing item
+      if (editingList === 'toBuy') {
+        toBuyItems[editingIndex] = newItem;
+      } else if (editingList === 'bought') {
+        boughtItems[editingIndex] = newItem;
+      }
+    } else {
+      // Add new item
+      toBuyItems.push(newItem);
+    }
+    
+    renderLists();
+    updateCounts();
+    hideModal();
+  });
 }
 
-document.getElementById('generateListBtn').onclick = () => {
-  items = JSON.parse(JSON.stringify(demoItems));
-  renderList();
-  updateSummary();
-};
+// Add item functionality (opens modal)
+function addItem() {
+  showModal();
+}
 
-document.getElementById('clearListBtn').onclick = () => {
-  if (confirm('Are you sure you want to clear the entire shopping list?')) {
-    items = [];
-    renderList();
-    updateSummary();
+// Edit item functionality
+function editItem(list, itemIndex) {
+  const items = list === 'toBuy' ? toBuyItems : boughtItems;
+  const item = items[itemIndex];
+  showModal(item, itemIndex, list);
+}
+
+// Mark item as bought
+function markAsBought(itemIndex) {
+  const item = toBuyItems.splice(itemIndex, 1)[0];
+  boughtItems.push(item);
+  renderLists();
+  updateCounts();
+}
+
+// Undo bought item
+function undoBought(itemIndex) {
+  const item = boughtItems.splice(itemIndex, 1)[0];
+  toBuyItems.push(item);
+  renderLists();
+  updateCounts();
+}
+
+// Delete item
+function deleteItem(list, itemIndex) {
+  if (list === 'toBuy') {
+    toBuyItems.splice(itemIndex, 1);
+  } else {
+    boughtItems.splice(itemIndex, 1);
   }
-};
+  renderLists();
+  updateCounts();
+}
 
-window.onload = () => {
-  items = JSON.parse(JSON.stringify(demoItems));
-  renderList();
-  updateSummary();
-};
+// Format date for display
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = String(date.getFullYear());
+  return `${day}/${month}/${year}`;
+}
+
+// Render both lists
+function renderLists() {
+  // Render to buy list
+  toBuyList.innerHTML = '';
+  toBuyItems.forEach((item, index) => {
+    const itemCard = document.createElement('div');
+    itemCard.className = 'item-card';
+    itemCard.innerHTML = `
+      <div class="item-info">
+        <div class="item-main">
+          <span class="item-name">${item.name}</span>
+          <span class="item-quantity">${item.quantity}</span>
+        </div>
+        <div class="item-details">
+          ${item.expiryDate ? `<span class="item-expiry">Expires: ${formatDate(item.expiryDate)}</span>` : ''}
+          ${item.notes ? `<span class="item-notes">${item.notes}</span>` : ''}
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="edit-btn" title="Edit item" onclick="editItem('toBuy', ${index})">
+          <i class="fa fa-edit"></i>
+        </button>
+        <button class="bought-btn" title="Mark as bought" onclick="markAsBought(${index})">
+          <i class="fa fa-check"></i>
+        </button>
+        <button class="delete-btn" title="Delete" onclick="deleteItem('toBuy', ${index})">
+          <i class="fa fa-trash"></i>
+        </button>
+      </div>
+    `;
+    toBuyList.appendChild(itemCard);
+  });
+
+  // Render bought list
+  boughtList.innerHTML = '';
+  boughtItems.forEach((item, index) => {
+    const itemCard = document.createElement('div');
+    itemCard.className = 'item-card bought';
+    itemCard.innerHTML = `
+      <div class="item-info">
+        <div class="item-main">
+          <span class="item-name">${item.name}</span>
+          <span class="item-quantity">${item.quantity}</span>
+        </div>
+        <div class="item-details">
+          ${item.expiryDate ? `<span class="item-expiry">Expires: ${formatDate(item.expiryDate)}</span>` : ''}
+          ${item.notes ? `<span class="item-notes">${item.notes}</span>` : ''}
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="edit-btn" title="Edit item" onclick="editItem('bought', ${index})">
+          <i class="fa fa-edit"></i>
+        </button>
+        <button class="undo-btn" title="Move back to list" onclick="undoBought(${index})">
+          <i class="fa fa-undo"></i>
+        </button>
+        <button class="delete-btn" title="Delete" onclick="deleteItem('bought', ${index})">
+          <i class="fa fa-trash"></i>
+        </button>
+      </div>
+    `;
+    boughtList.appendChild(itemCard);
+  });
+}
+
+// Update item counts
+function updateCounts() {
+  const toBuyCount = document.querySelector('.list-section:first-child .item-count');
+  const boughtCount = document.querySelector('.list-section:last-child .item-count');
+  
+  if (toBuyCount) toBuyCount.textContent = toBuyItems.length;
+  if (boughtCount) boughtCount.textContent = boughtItems.length;
+}
+
+// Event listeners
+addItemBtn.addEventListener('click', addItem);
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', () => {
+  renderLists();
+  updateCounts();
+});

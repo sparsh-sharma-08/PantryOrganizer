@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Support - Smart Pantry</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/styles/settings.css"/>
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <style>
+    .support-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .support-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .support-header h1 {
+      color: #4361ee;
+      margin-bottom: 1rem;
+    }
+    
+    .support-header p {
+      color: #6c757d;
+      font-size: 1.1rem;
+    }
+    
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #4361ee;
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background 0.2s;
+      margin-bottom: 2rem;
+    }
+    
+    .back-btn:hover {
+      background: #3a52cc;
+    }
+    
+    .support-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    .support-card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid #dee2e6;
+    }
+    
+    .support-card h2 {
+      color: #4361ee;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .support-card h3 {
+      color: #212529;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+    
+    .faq-item {
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e9ecef;
+      padding-bottom: 1rem;
+    }
+    
+    .faq-item:last-child {
+      border-bottom: none;
+    }
+    
+    .faq-question {
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .faq-answer {
+      color: #495057;
+      line-height: 1.6;
+      display: none;
+    }
+    
+    .faq-answer.show {
+      display: block;
+    }
+    
+    .contact-form {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid #dee2e6;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #212529;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #4361ee;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    
+    .submit-btn {
+      background: #4361ee;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .submit-btn:hover {
+      background: #3a52cc;
+    }
+    
+    .resources-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .resource-item {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      text-align: center;
+    }
+    
+    .resource-item i {
+      font-size: 2rem;
+      color: #4361ee;
+      margin-bottom: 1rem;
+    }
+    
+    .resource-item h4 {
+      color: #212529;
+      margin-bottom: 0.5rem;
+    }
+    
+    .resource-item p {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+      .support-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .support-content {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <span class="logo">Smart Pantry</span>
+    <div class="nav-links">
+      <a href="/dashboard.html"><i class="fa fa-home"></i> Dashboard</a>
+      <a href="/shopping-list.html"><i class="fa fa-list"></i> Shopping List</a>
+      <a href="/notification.html"><i class="fa fa-bell"></i> Notifications <span class="notif-dot">3</span></a>
+      <a href="/settings.html"><i class="fa fa-cog"></i> Settings</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/settings.html" class="avatar-link">
+        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="avatar"/>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <div class="support-content">
+      <a href="/settings.html" class="back-btn">
+        <i class="fa fa-arrow-left"></i>
+        Back to Settings
+      </a>
+      
+      <div class="support-header">
+        <h1><i class="fa fa-headset"></i> Support Center</h1>
+        <p>Need help? We're here to assist you with any questions or issues you may have.</p>
+      </div>
+      
+      <div class="support-grid">
+        <!-- FAQ Section -->
+        <div class="support-card">
+          <h2><i class="fa fa-question-circle"></i> Frequently Asked Questions</h2>
+          
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+              <i class="fa fa-chevron-right"></i>
+              How do I add items to my pantry?
+            </div>
+            <div class="faq-answer">
+              To add items to your pantry, go to the Dashboard and click the "Add Item" button. Fill in the item details including name, quantity, unit, expiry date, and category. Click "Save" to add the item to your pantry.
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+              <i class="fa fa-chevron-right"></i>
+              How do I set up expiry reminders?
+            </div>
+            <div class="faq-answer">
+              Go to Settings > Notifications and enable "Expiry Reminders". You can also set the number of days before expiry to receive warnings. The default is 2 days, but you can adjust this to 1, 3, or 7 days.
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+              <i class="fa fa-chevron-right"></i>
+              Can I export my pantry data?
+            </div>
+            <div class="faq-answer">
+              Yes! Go to Settings > Data Management and click "Export". You can choose the format (JSON, CSV, or TXT) and select which data to include (items, categories, shopping lists, settings).
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+              <i class="fa fa-chevron-right"></i>
+              How do I change my password?
+            </div>
+            <div class="faq-answer">
+              Go to Settings > Account and click "Change Password". Enter your current password, new password (minimum 8 characters), and confirm the new password. Click "Change Password" to save.
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+              <i class="fa fa-chevron-right"></i>
+              What if I forget my password?
+            </div>
+            <div class="faq-answer">
+              If you forget your password, click "Forgot Password" on the login page. Enter your email address and we'll send you a password reset link. Follow the instructions in the email to create a new password.
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+              <i class="fa fa-chevron-right"></i>
+              How do I organize items by categories?
+            </div>
+            <div class="faq-answer">
+              When adding items, you can select from existing categories or create new ones. Go to Settings > Pantry Settings and enable "Auto-categorization" to automatically categorize new items based on their names.
+            </div>
+          </div>
+        </div>
+        
+        <!-- Contact Form -->
+        <div class="contact-form">
+          <h2><i class="fa fa-envelope"></i> Contact Support</h2>
+          <p>Can't find what you're looking for? Send us a message and we'll get back to you within 24 hours.</p>
+          
+          <form id="supportForm">
+            <div class="form-group">
+              <label for="name">Full Name *</label>
+              <input type="text" id="name" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="subject">Subject *</label>
+              <select id="subject" required>
+                <option value="">Select a subject</option>
+                <option value="technical">Technical Issue</option>
+                <option value="account">Account Problem</option>
+                <option value="feature">Feature Request</option>
+                <option value="bug">Bug Report</option>
+                <option value="general">General Question</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="priority">Priority</label>
+              <select id="priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="message">Message *</label>
+              <textarea id="message" placeholder="Please describe your issue or question in detail..." required></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+              <i class="fa fa-paper-plane"></i> Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Resources Section -->
+      <div class="resources-section">
+        <h2><i class="fa fa-book"></i> Helpful Resources</h2>
+        
+        <div class="resources-grid">
+          <div class="resource-item">
+            <i class="fa fa-play-circle"></i>
+            <h4>Video Tutorials</h4>
+            <p>Watch step-by-step guides on how to use Smart Pantry effectively</p>
+          </div>
+          
+          <div class="resource-item">
+            <i class="fa fa-file-pdf"></i>
+            <h4>User Manual</h4>
+            <p>Download our comprehensive user manual in PDF format</p>
+          </div>
+          
+          <div class="resource-item">
+            <i class="fa fa-users"></i>
+            <h4>Community Forum</h4>
+            <p>Connect with other users and share tips and tricks</p>
+          </div>
+          
+          <div class="resource-item">
+            <i class="fa fa-lightbulb"></i>
+            <h4>Tips & Tricks</h4>
+            <p>Discover useful features and best practices for pantry management</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // FAQ Toggle Functionality
+    function toggleFAQ(element) {
+      const answer = element.nextElementSibling;
+      const icon = element.querySelector('i');
+      
+      if (answer.classList.contains('show')) {
+        answer.classList.remove('show');
+        icon.className = 'fa fa-chevron-right';
+      } else {
+        answer.classList.add('show');
+        icon.className = 'fa fa-chevron-down';
+      }
+    }
+    
+    // Contact Form Submission
+    document.getElementById('supportForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        subject: document.getElementById('subject').value,
+        priority: document.getElementById('priority').value,
+        message: document.getElementById('message').value
+      };
+      
+      // Simulate form submission
+      console.log('Support request submitted:', formData);
+      
+      // Show success message
+      alert('Thank you for your message! We will get back to you within 24 hours.');
+      
+      // Reset form
+      this.reset();
+    });
+  </script>
+  <script src="/scripts/navbar.js"></script>
+</body>
+</html> 

@@ -6,9 +6,9 @@
   <title>Smart Pantry | Sign Up</title>
   <link
     rel="stylesheet"
-    href="/public/styles/signUp.css"
+    href="/styles/signUp.css"
   />
-  <link rel="icon" type="image/png" href="/public/images/favicon.png">
+  <link rel="icon" type="image/png" href="/images/favicon.png">
   <!-- Font Awesome for the eye icon -->
   <link
     rel="stylesheet"
@@ -49,31 +49,35 @@
 
         <div class="form-group password-group">
           <label for="password">Password *</label>
-          <input
-            type="password"
-            id="password"
-            placeholder="Create a password"
-            required
-          />
-          <i class="fa-regular fa-eye toggle-password" style="margin-top: 1rem"></i>
+          <div class="password-input-wrapper">
+            <input
+              type="password"
+              id="password"
+              placeholder="Create a password"
+              required
+            />
+            <i class="fa-regular fa-eye toggle-password" id="password-toggle"></i>
+          </div>
         </div>
 
         <div class="form-group password-group">
           <label for="confirm-password">Confirm Password *</label>
-          <input
-            type="password"
-            id="confirm-password"
-            placeholder="Confirm your password"
-            required
-          />
-          <i class="fa-regular fa-eye toggle-password" style="margin-top: 1rem"></i>
+          <div class="password-input-wrapper">
+            <input
+              type="password"
+              id="confirm-password"
+              placeholder="Confirm your password"
+              required
+            />
+            <i class="fa-regular fa-eye toggle-password" id="confirm-password-toggle"></i>
+          </div>
         </div>
 
         <button type="submit" class="btn submit-btn">Sign Up</button>
 
         <p class="endText">
           Already have an account?
-          <a href="/public/login.html" class="login-link">Login</a>
+          <a href="/login.html" class="login-link">Login</a>
         </p>
       </form>
     </div>
@@ -83,9 +87,12 @@
     // Toggle password visibility
     document.querySelectorAll('.toggle-password').forEach(icon => {
       icon.addEventListener('click', () => {
-        const input = icon.previousElementSibling;
+        // Find the input field within the same wrapper
+        const input = icon.parentElement.querySelector('input');
         const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
         input.setAttribute('type', type);
+        
+        // Toggle the icon
         icon.classList.toggle('fa-eye');
         icon.classList.toggle('fa-eye-slash');
       });
