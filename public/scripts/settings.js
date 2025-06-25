@@ -358,6 +358,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Close modal and show success message
         closeModalFunc(exportDataModal);
         showSuccessMessage('Data exported successfully');
+
+        if (window.navbarManager) {
+            window.navbarManager.addNotification({
+                type: 'system',
+                title: 'Data Exported',
+                message: 'Your pantry data was exported successfully.',
+                actions: ['View Exported Data']
+            });
+        }
     });
 
     // Convert data to CSV format
@@ -496,6 +505,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeModalFunc(importDataModal);
                 importFile.value = '';
                 startImport.disabled = true;
+
+                if (window.navbarManager) {
+                    window.navbarManager.addNotification({
+                        type: 'system',
+                        title: 'Data Imported',
+                        message: 'Your pantry data was imported successfully.',
+                        actions: ['View Imported Data']
+                    });
+                }
             } catch (error) {
                 alert('Invalid file format. Please select a valid JSON file.');
             }
@@ -650,6 +668,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         localStorage.setItem('pantrySettings', JSON.stringify(settings));
         console.log('Settings saved:', settings);
+
+        if (window.navbarManager) {
+            window.navbarManager.addNotification({
+                type: 'system',
+                title: 'Settings Changed',
+                message: 'Your pantry settings were updated.',
+                actions: ['View Settings']
+            });
+        }
     };
 
     // Load settings from localStorage

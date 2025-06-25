@@ -28,16 +28,6 @@
     <div class="infoContainer">
       <form action="#" class="signUpForm">
         <div class="form-group">
-          <label for="username">Username *</label>
-          <input
-            type="text"
-            id="username"
-            placeholder="Enter your username"
-            required
-          />
-        </div>
-
-        <div class="form-group">
           <label for="email">Email Address *</label>
           <input
             type="email"
@@ -75,6 +65,11 @@
 
         <button type="submit" class="btn submit-btn">Sign Up</button>
 
+        <div style="text-align:center; margin: 1rem 0;">
+          <button type="button" class="btn submit-btn" id="google-login" style="background:#db4437; margin-bottom: 0.5rem;"><i class="fab fa-google"></i> Sign Up with Google</button><br>
+          <button type="button" class="btn submit-btn" id="github-login" style="background:#333;"><i class="fab fa-github"></i> Sign Up with GitHub</button>
+        </div>
+
         <p class="endText">
           Already have an account?
           <a href="/login.html" class="login-link">Login</a>
@@ -98,5 +93,6 @@
       });
     });
   </script>
+  <script src="/scripts/app.js"></script>
 </body>
 </html>

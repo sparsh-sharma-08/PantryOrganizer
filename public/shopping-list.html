@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shopping List - Smart Pantry</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/styles/main.css"/>
   <link rel="stylesheet" href="/styles/shopping-list.css"/>
   <link rel="icon" type="image/png" href="/images/favicon.png">
 </head>
@@ -42,97 +43,14 @@
         <div class="list-section">
           <h2>To Buy <span class="item-count">3</span></h2>
           <div class="item-list" id="toBuyList">
-            <div class="item-card">
-              <div class="item-info">
-                <div class="item-main">
-                  <span class="item-name">Milk</span>
-                  <span class="item-quantity">2 L</span>
-                </div>
-                <div class="item-details">
-                  <span class="item-expiry">Expires: 1/15/2024</span>
-                  <span class="item-notes">For coffee</span>
-                </div>
-              </div>
-              <div class="item-actions">
-                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
-                <button class="bought-btn" title="Mark as bought"><i class="fa fa-check"></i></button>
-                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
-              </div>
-            </div>
-            <div class="item-card">
-              <div class="item-info">
-                <div class="item-main">
-                  <span class="item-name">Bread</span>
-                  <span class="item-quantity">1 loaf</span>
-                </div>
-                <div class="item-details">
-                  <span class="item-expiry">Expires: 1/10/2024</span>
-                  <span class="item-notes">Whole wheat</span>
-                </div>
-              </div>
-              <div class="item-actions">
-                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
-                <button class="bought-btn" title="Mark as bought"><i class="fa fa-check"></i></button>
-                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
-              </div>
-            </div>
-            <div class="item-card">
-              <div class="item-info">
-                <div class="item-main">
-                  <span class="item-name">Apples</span>
-                  <span class="item-quantity">6 pcs</span>
-                </div>
-                <div class="item-details">
-                  <span class="item-expiry">Expires: 1/20/2024</span>
-                  <span class="item-notes">Organic</span>
-                </div>
-              </div>
-              <div class="item-actions">
-                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
-                <button class="bought-btn" title="Mark as bought"><i class="fa fa-check"></i></button>
-                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
-              </div>
-            </div>
+            
           </div>
         </div>
         
         <div class="list-section">
           <h2>Bought <span class="item-count">2</span></h2>
           <div class="item-list" id="boughtList">
-            <div class="item-card bought">
-              <div class="item-info">
-                <div class="item-main">
-                  <span class="item-name">Yogurt</span>
-                  <span class="item-quantity">500g</span>
-                </div>
-                <div class="item-details">
-                  <span class="item-expiry">Expires: 1/8/2024</span>
-                  <span class="item-notes">Greek style</span>
-                </div>
-              </div>
-              <div class="item-actions">
-                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
-                <button class="undo-btn" title="Move back to list"><i class="fa fa-undo"></i></button>
-                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
-              </div>
-            </div>
-            <div class="item-card bought">
-              <div class="item-info">
-                <div class="item-main">
-                  <span class="item-name">Cheese</span>
-                  <span class="item-quantity">200g</span>
-                </div>
-                <div class="item-details">
-                  <span class="item-expiry">Expires: 1/25/2024</span>
-                  <span class="item-notes">Cheddar</span>
-                </div>
-              </div>
-              <div class="item-actions">
-                <button class="edit-btn" title="Edit item"><i class="fa fa-edit"></i></button>
-                <button class="undo-btn" title="Move back to list"><i class="fa fa-undo"></i></button>
-                <button class="delete-btn" title="Delete"><i class="fa fa-trash"></i></button>
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>
@@ -151,6 +69,23 @@
         <label>
           Quantity Needed:
           <input type="text" id="itemNeed" placeholder="e.g., 1 kg" required />
+        </label>
+        <label>
+          Category:
+          <select id="itemCategory" required>
+            <option value="">Select Category</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Bakery">Bakery</option>
+            <option value="Fruits">Fruits</option>
+            <option value="Vegetables">Vegetables</option>
+            <option value="Meat">Meat</option>
+            <option value="Grains">Grains</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Frozen">Frozen</option>
+            <option value="Condiments">Condiments</option>
+            <option value="Other">Other</option>
+          </select>
         </label>
         <label>
           Expiry Date (optional):

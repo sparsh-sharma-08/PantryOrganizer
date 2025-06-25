@@ -6,6 +6,10 @@ let currentFilters = {
     status: ''
 };
 
+const STATIC_CATEGORIES = [
+    'Dairy', 'Bakery', 'Fruits', 'Vegetables', 'Meat', 'Grains', 'Snacks', 'Beverages', 'Frozen', 'Condiments', 'Other'
+];
+
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize summary cards with 0 values
@@ -23,29 +27,20 @@ function initializeSummaryCards() {
     document.querySelector('.summary-card:nth-child(4) .summary-value').textContent = '0';
 }
 
-// Load categories from database
+function getToken() {
+    return localStorage.getItem('token');
+}
+
+// Load categories from static list
 async function loadCategories() {
-    try {
-        const response = await fetch('/api/categories');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
-        
-        if (result.message === 'success') {
-            const categoryFilter = document.getElementById('categoryFilter');
-            categoryFilter.innerHTML = '<option value="">All Categories</option>';
-            
-            result.data.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                categoryFilter.appendChild(option);
-            });
-        }
-    } catch (error) {
-        console.error('Error loading categories:', error);
-    }
+    const categoryFilter = document.getElementById('categoryFilter');
+    categoryFilter.innerHTML = '<option value="">All Categories</option>';
+    STATIC_CATEGORIES.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+    });
 }
 
 // Load pantry items from database
@@ -56,7 +51,9 @@ async function loadItems() {
         if (currentFilters.category) params.append('category', currentFilters.category);
         if (currentFilters.status) params.append('status', currentFilters.status);
         
-        const response = await fetch(`/api/items?${params.toString()}`);
+        const response = await fetch(`/api/items?${params.toString()}`, {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -66,6 +63,24 @@ async function loadItems() {
             allItems = result.data;
             renderItems();
             updateSummaryCards();
+            // Stock running low notification
+            if (window.navbarManager && Array.isArray(allItems)) {
+                allItems.forEach(item => {
+                    if (parseInt(item.quantity) <= 2) {
+                        const notifKey = `lowstock-${item.id}`;
+                        const notified = localStorage.getItem(notifKey);
+                        if (!notified) {
+                            window.navbarManager.addNotification({
+                                type: 'system',
+                                title: 'Stock Running Low',
+                                message: `${item.name} is running low in your pantry. Consider restocking soon!`,
+                                actions: ['View Item']
+                            });
+                            localStorage.setItem(notifKey, '1');
+                        }
+                    }
+                });
+            }
         }
     } catch (error) {
         console.error('Error loading items:', error);
@@ -246,7 +261,7 @@ async function handleAddItem(e) {
     };
     
     if (!formData.name || !formData.quantity || !formData.category || !formData.expiry_date) {
-        alert('Please fill in all fields');
+        showNotification('Please fill in all fields');
         return;
     }
     
@@ -255,7 +270,8 @@ async function handleAddItem(e) {
         const response = await fetch('/api/items', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getToken()
             },
             body: JSON.stringify(formData)
         });
@@ -266,13 +282,21 @@ async function handleAddItem(e) {
         
         if (result.message === 'success') {
             document.getElementById('addItemModal').style.display = 'none';
+            if (window.navbarManager) {
+                window.navbarManager.addNotification({
+                    type: 'system',
+                    title: 'Item Added',
+                    message: `${formData.name} was added to your pantry!`,
+                    actions: ['View Item']
+                });
+            }
             loadItems();
         } else {
-            alert('Error adding item: ' + (result.error || 'Unknown error'));
+            showNotification('Error adding item: ' + (result.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error adding item:', error);
-        alert('Error adding item. Please check the console for details.');
+        showNotification('Error adding item. Please check the console for details.');
     }
 }
 
@@ -306,7 +330,7 @@ async function handleEditItem(e) {
     };
     
     if (!formData.name || !formData.quantity || !formData.category || !formData.expiry_date) {
-        alert('Please fill in all fields');
+        showNotification('Please fill in all fields');
         return;
     }
     
@@ -314,7 +338,8 @@ async function handleEditItem(e) {
         const response = await fetch(`/api/items/${itemId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getToken()
             },
             body: JSON.stringify(formData)
         });
@@ -325,36 +350,43 @@ async function handleEditItem(e) {
             document.getElementById('editItemModal').style.display = 'none';
             loadItems();
         } else {
-            alert('Error updating item: ' + result.error);
+            showNotification('Error updating item: ' + result.error);
         }
     } catch (error) {
         console.error('Error updating item:', error);
-        alert('Error updating item. Please try again.');
+        showNotification('Error updating item. Please try again.');
     }
 }
 
 // Handle delete item
 async function handleDeleteItem(itemId) {
-    if (!confirm('Are you sure you want to delete this item?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/items/${itemId}`, {
-            method: 'DELETE'
-        });
-        
-        const result = await response.json();
-        
-        if (result.message === 'success') {
-            loadItems();
-        } else {
-            alert('Error deleting item: ' + result.error);
-        }
-    } catch (error) {
-        console.error('Error deleting item:', error);
-        alert('Error deleting item. Please try again.');
-    }
+    showConfirm('Are you sure you want to delete this item?', () => {
+        (async () => {
+            try {
+                const response = await fetch(`/api/items/${itemId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + getToken() }
+                });
+                const result = await response.json();
+                if (result.message === 'success') {
+                    if (window.navbarManager) {
+                        window.navbarManager.addNotification({
+                            type: 'system',
+                            title: 'Item Deleted',
+                            message: `An item was deleted from your pantry.`,
+                            actions: ['View Changes']
+                        });
+                    }
+                    loadItems();
+                } else {
+                    showNotification('Error deleting item: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showNotification('Error deleting item. Please try again.');
+            }
+        })();
+    });
 }
 
 // Update summary cards
@@ -384,4 +416,56 @@ function updateSummaryCards() {
     document.querySelector('.summary-card:nth-child(2) .summary-value').textContent = freshItems;
     document.querySelector('.summary-card:nth-child(3) .summary-value').textContent = expiringSoon;
     document.querySelector('.summary-card:nth-child(4) .summary-value').textContent = expired;
+}
+
+function showNotification(message, type = 'info') {
+    let notif = document.getElementById('customNotificationBox');
+    if (!notif) {
+        notif = document.createElement('div');
+        notif.id = 'customNotificationBox';
+        notif.style.position = 'fixed';
+        notif.style.top = '24px';
+        notif.style.right = '24px';
+        notif.style.zIndex = '9999';
+        notif.style.minWidth = '220px';
+        notif.style.padding = '1em 1.5em';
+        notif.style.borderRadius = '6px';
+        notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        notif.style.fontSize = '1em';
+        notif.style.display = 'none';
+        document.body.appendChild(notif);
+    }
+    notif.textContent = message;
+    notif.style.background = type === 'error' ? '#e74c3c' : '#3498db';
+    notif.style.color = '#fff';
+    notif.style.display = 'block';
+    setTimeout(() => { notif.style.display = 'none'; }, 3500);
+}
+
+function showConfirm(message, onConfirm) {
+    let dialog = document.getElementById('customConfirmBox');
+    if (!dialog) {
+        dialog = document.createElement('div');
+        dialog.id = 'customConfirmBox';
+        dialog.innerHTML = `
+            <div class="dialog-backdrop"></div>
+            <div class="dialog-box">
+                <p class="dialog-message"></p>
+                <div class="dialog-actions">
+                    <button class="dialog-cancel">Cancel</button>
+                    <button class="dialog-ok">OK</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(dialog);
+    }
+    dialog.querySelector('.dialog-message').textContent = message;
+    dialog.style.display = 'flex';
+    dialog.querySelector('.dialog-cancel').onclick = () => {
+        dialog.style.display = 'none';
+    };
+    dialog.querySelector('.dialog-ok').onclick = () => {
+        dialog.style.display = 'none';
+        if (typeof onConfirm === 'function') onConfirm();
+    };
 }

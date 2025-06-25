@@ -1,154 +1,194 @@
-// Shopping list functionality
-let toBuyItems = [
-  { name: 'Milk', quantity: '2 L', expiryDate: '2024-01-15', notes: 'For coffee' },
-  { name: 'Bread', quantity: '1 loaf', expiryDate: '2024-01-10', notes: 'Whole wheat' },
-  { name: 'Apples', quantity: '6 pcs', expiryDate: '2024-01-20', notes: 'Organic' }
-];
+// Shopping list functionality (user-specific, persistent)
+let toBuyItems = [];
+let boughtItems = [];
 
-let boughtItems = [
-  { name: 'Yogurt', quantity: '500g', expiryDate: '2024-01-08', notes: 'Greek style' },
-  { name: 'Cheese', quantity: '200g', expiryDate: '2024-01-25', notes: 'Cheddar' }
-];
-
-// DOM elements
-const itemInput = document.getElementById('itemInput');
 const addItemBtn = document.getElementById('addItemBtn');
 const toBuyList = document.getElementById('toBuyList');
 const boughtList = document.getElementById('boughtList');
-
-// Modal elements
 const addItemModal = document.getElementById('addItemModal');
 const addItemForm = document.getElementById('addItemForm');
 const cancelAddItemBtn = document.getElementById('cancelAddItem');
 
-// Modal state
 let isEditing = false;
-let editingIndex = -1;
-let editingList = '';
+let editingId = null;
+let editingStatus = '';
 
-// Modal functions
-function showModal(item = null, index = -1, list = '') {
-  isEditing = item !== null;
-  editingIndex = index;
-  editingList = list;
-  
+const STATIC_CATEGORIES = [
+    'Dairy', 'Bakery', 'Fruits', 'Vegetables', 'Meat', 'Grains', 'Snacks', 'Beverages', 'Frozen', 'Condiments', 'Other'
+];
+
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+async function fetchShoppingList() {
+  const res = await fetch('/api/shopping-list', {
+    headers: { 'Authorization': 'Bearer ' + getToken() }
+  });
+  const data = await res.json();
+  if (res.ok) {
+    toBuyItems = data.data.filter(item => item.status === 'to_buy');
+    boughtItems = data.data.filter(item => item.status === 'bought');
+    renderLists();
+    updateCounts();
+  } else {
+    toBuyItems = [];
+    boughtItems = [];
+    renderLists();
+    updateCounts();
+  }
+}
+
+function showModal(item = null) {
+  isEditing = !!item;
+  editingId = item ? item.id : null;
+  editingStatus = item ? item.status : '';
   addItemModal.classList.add('visible');
   addItemForm.reset();
-  
-  if (isEditing && item) {
-    // Fill form with existing data
+  if (item) {
     document.getElementById('itemName').value = item.name;
     document.getElementById('itemNeed').value = item.quantity;
-    document.getElementById('itemExpiry').value = item.expiryDate || '';
+    document.getElementById('itemExpiry').value = item.expiry_date || '';
     document.getElementById('itemStatus').value = item.notes || '';
-    
-    // Update modal title and button
+    document.getElementById('itemCategory').value = item.category || '';
     document.querySelector('.modal h2').textContent = 'Update Shopping Item';
     document.querySelector('.primary-btn').textContent = 'Update Item';
   } else {
-    // Reset modal for adding new item
     document.querySelector('.modal h2').textContent = 'Add to Shopping List';
     document.querySelector('.primary-btn').textContent = 'Add Item';
   }
-  
   document.getElementById('itemName').focus();
 }
 
 function hideModal() {
   addItemModal.classList.remove('visible');
   isEditing = false;
-  editingIndex = -1;
-  editingList = '';
+  editingId = null;
+  editingStatus = '';
 }
 
-// Modal event listeners
 if (cancelAddItemBtn) {
   cancelAddItemBtn.addEventListener('click', hideModal);
 }
-
 if (addItemModal) {
   addItemModal.addEventListener('click', (e) => {
-    if (e.target === addItemModal) {
-      hideModal();
-    }
+    if (e.target === addItemModal) hideModal();
   });
 }
-
 if (addItemForm) {
-  addItemForm.addEventListener('submit', (e) => {
+  addItemForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('itemName').value.trim();
-    const need = document.getElementById('itemNeed').value.trim();
-    const expiry = document.getElementById('itemExpiry').value;
-    const status = document.getElementById('itemStatus').value.trim();
-
-    if (!name || !need) return;
-
-    const newItem = {
-      name: name,
-      quantity: need,
-      expiryDate: expiry || null,
-      notes: status || ''
-    };
-
+    const quantity = document.getElementById('itemNeed').value.trim();
+    const expiry_date = document.getElementById('itemExpiry').value;
+    const notes = document.getElementById('itemStatus').value.trim();
+    const category = document.getElementById('itemCategory').value;
+    if (!name || !quantity || !category) return;
     if (isEditing) {
       // Update existing item
-      if (editingList === 'toBuy') {
-        toBuyItems[editingIndex] = newItem;
-      } else if (editingList === 'bought') {
-        boughtItems[editingIndex] = newItem;
-      }
+      await fetch(`/api/shopping-list/${editingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken()
+        },
+        body: JSON.stringify({ name, quantity, expiry_date, notes, category, status: editingStatus })
+      });
     } else {
       // Add new item
-      toBuyItems.push(newItem);
+      await fetch('/api/shopping-list', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken()
+        },
+        body: JSON.stringify({ name, quantity, expiry_date, notes, category, status: 'to_buy' })
+      });
     }
-    
-    renderLists();
-    updateCounts();
     hideModal();
+    fetchShoppingList();
   });
 }
-
-// Add item functionality (opens modal)
-function addItem() {
-  showModal();
-}
-
-// Edit item functionality
+function addItem() { showModal(); }
 function editItem(list, itemIndex) {
-  const items = list === 'toBuy' ? toBuyItems : boughtItems;
-  const item = items[itemIndex];
-  showModal(item, itemIndex, list);
+  const item = list === 'toBuy' ? toBuyItems[itemIndex] : boughtItems[itemIndex];
+  showModal(item);
 }
-
-// Mark item as bought
-function markAsBought(itemIndex) {
-  const item = toBuyItems.splice(itemIndex, 1)[0];
-  boughtItems.push(item);
-  renderLists();
-  updateCounts();
-}
-
-// Undo bought item
-function undoBought(itemIndex) {
-  const item = boughtItems.splice(itemIndex, 1)[0];
-  toBuyItems.push(item);
-  renderLists();
-  updateCounts();
-}
-
-// Delete item
-function deleteItem(list, itemIndex) {
-  if (list === 'toBuy') {
-    toBuyItems.splice(itemIndex, 1);
-  } else {
-    boughtItems.splice(itemIndex, 1);
+async function markAsBought(itemIndex) {
+  const item = toBuyItems[itemIndex];
+  // Ensure expiry_date and category are set
+  let expiry_date = item.expiry_date;
+  if (!expiry_date) {
+    const today = new Date();
+    expiry_date = today.toISOString().split('T')[0];
   }
-  renderLists();
-  updateCounts();
+  let category = item.category || 'Other';
+  // Update shopping list item status
+  await fetch(`/api/shopping-list/${item.id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + getToken()
+    },
+    body: JSON.stringify({ ...item, status: 'bought' })
+  });
+  // Add to pantry (dashboard)
+  await fetch('/api/items', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + getToken()
+    },
+    body: JSON.stringify({
+      name: item.name,
+      quantity: item.quantity,
+      expiry_date,
+      category
+    })
+  });
+  fetchShoppingList();
+  window.location.href = '/dashboard.html';
+  if (window.navbarManager) {
+    window.navbarManager.addNotification({
+        type: 'shopping',
+        title: 'Item Purchased',
+        message: `${item.name} was marked as purchased and added to your pantry!`,
+        actions: ['View Item']
+    });
+  }
 }
-
-// Format date for display
+async function undoBought(itemIndex) {
+  const item = boughtItems[itemIndex];
+  await fetch(`/api/shopping-list/${item.id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + getToken()
+    },
+    body: JSON.stringify({ ...item, status: 'to_buy' })
+  });
+  fetchShoppingList();
+}
+async function deleteItem(list, itemIndex) {
+  showConfirm('Are you sure you want to delete this item?', () => {
+    (async () => {
+      const item = list === 'toBuy' ? toBuyItems[itemIndex] : boughtItems[itemIndex];
+      await fetch(`/api/shopping-list/${item.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      fetchShoppingList();
+    })();
+  });
+  if (window.navbarManager) {
+    window.navbarManager.addNotification({
+        type: 'shopping',
+        title: 'Item Deleted',
+        message: `An item was deleted from your shopping list.`,
+        actions: ['View Changes']
+    });
+  }
+}
 function formatDate(dateString) {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -157,11 +197,15 @@ function formatDate(dateString) {
   const year = String(date.getFullYear());
   return `${day}/${month}/${year}`;
 }
-
-// Render both lists
 function renderLists() {
-  // Render to buy list
   toBuyList.innerHTML = '';
+  if (toBuyItems.length > 0) {
+    const clearAllBtn = document.createElement('button');
+    clearAllBtn.className = 'clear-all-btn';
+    clearAllBtn.textContent = 'Clear All';
+    clearAllBtn.onclick = clearAllToBuy;
+    toBuyList.appendChild(clearAllBtn);
+  }
   toBuyItems.forEach((item, index) => {
     const itemCard = document.createElement('div');
     itemCard.className = 'item-card';
@@ -172,7 +216,7 @@ function renderLists() {
           <span class="item-quantity">${item.quantity}</span>
         </div>
         <div class="item-details">
-          ${item.expiryDate ? `<span class="item-expiry">Expires: ${formatDate(item.expiryDate)}</span>` : ''}
+          ${item.expiry_date ? `<span class="item-expiry">Expires: ${formatDate(item.expiry_date)}</span>` : ''}
           ${item.notes ? `<span class="item-notes">${item.notes}</span>` : ''}
         </div>
       </div>
@@ -190,9 +234,14 @@ function renderLists() {
     `;
     toBuyList.appendChild(itemCard);
   });
-
-  // Render bought list
   boughtList.innerHTML = '';
+  if (boughtItems.length > 0) {
+    const clearAllBtn = document.createElement('button');
+    clearAllBtn.className = 'clear-all-btn';
+    clearAllBtn.textContent = 'Clear All';
+    clearAllBtn.onclick = clearAllBought;
+    boughtList.appendChild(clearAllBtn);
+  }
   boughtItems.forEach((item, index) => {
     const itemCard = document.createElement('div');
     itemCard.className = 'item-card bought';
@@ -203,7 +252,7 @@ function renderLists() {
           <span class="item-quantity">${item.quantity}</span>
         </div>
         <div class="item-details">
-          ${item.expiryDate ? `<span class="item-expiry">Expires: ${formatDate(item.expiryDate)}</span>` : ''}
+          ${item.expiry_date ? `<span class="item-expiry">Expires: ${formatDate(item.expiry_date)}</span>` : ''}
           ${item.notes ? `<span class="item-notes">${item.notes}</span>` : ''}
         </div>
       </div>
@@ -222,21 +271,105 @@ function renderLists() {
     boughtList.appendChild(itemCard);
   });
 }
-
-// Update item counts
 function updateCounts() {
   const toBuyCount = document.querySelector('.list-section:first-child .item-count');
   const boughtCount = document.querySelector('.list-section:last-child .item-count');
-  
   if (toBuyCount) toBuyCount.textContent = toBuyItems.length;
   if (boughtCount) boughtCount.textContent = boughtItems.length;
 }
-
-// Event listeners
+async function clearAllToBuy() {
+  showConfirm('Are you sure you want to clear all To Buy items?', () => {
+    (async () => {
+      for (const item of toBuyItems) {
+        await fetch(`/api/shopping-list/${item.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+      }
+      fetchShoppingList();
+    })();
+  });
+  if (window.navbarManager) {
+    window.navbarManager.addNotification({
+        type: 'shopping',
+        title: 'Shopping List Cleared',
+        message: `All items were cleared from your shopping list (${arguments.callee.name === 'clearAllToBuy' ? 'To Buy' : 'Bought'}).`,
+        actions: ['View Shopping List']
+    });
+  }
+}
+async function clearAllBought() {
+  showConfirm('Are you sure you want to clear all Bought items?', () => {
+    (async () => {
+      for (const item of boughtItems) {
+        await fetch(`/api/shopping-list/${item.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+      }
+      fetchShoppingList();
+    })();
+  });
+  if (window.navbarManager) {
+    window.navbarManager.addNotification({
+        type: 'shopping',
+        title: 'Shopping List Cleared',
+        message: `All items were cleared from your shopping list (${arguments.callee.name === 'clearAllBought' ? 'Bought' : 'To Buy'}).`,
+        actions: ['View Shopping List']
+    });
+  }
+}
 addItemBtn.addEventListener('click', addItem);
+document.addEventListener('DOMContentLoaded', fetchShoppingList);
 
-// Initialize the page
-document.addEventListener('DOMContentLoaded', () => {
-  renderLists();
-  updateCounts();
-});
+function showNotification(message, type = 'info') {
+  let notif = document.getElementById('customNotificationBox');
+  if (!notif) {
+    notif = document.createElement('div');
+    notif.id = 'customNotificationBox';
+    notif.style.position = 'fixed';
+    notif.style.top = '24px';
+    notif.style.right = '24px';
+    notif.style.zIndex = '9999';
+    notif.style.minWidth = '220px';
+    notif.style.padding = '1em 1.5em';
+    notif.style.borderRadius = '6px';
+    notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+    notif.style.fontSize = '1em';
+    notif.style.display = 'none';
+    document.body.appendChild(notif);
+  }
+  notif.textContent = message;
+  notif.style.background = type === 'error' ? '#e74c3c' : '#3498db';
+  notif.style.color = '#fff';
+  notif.style.display = 'block';
+  setTimeout(() => { notif.style.display = 'none'; }, 3500);
+}
+
+function showConfirm(message, onConfirm) {
+  let dialog = document.getElementById('customConfirmBox');
+  if (!dialog) {
+    dialog = document.createElement('div');
+    dialog.id = 'customConfirmBox';
+    dialog.innerHTML = `
+      <div class="dialog-backdrop"></div>
+      <div class="dialog-box">
+        <p class="dialog-message"></p>
+        <div class="dialog-actions">
+          <button class="dialog-cancel">Cancel</button>
+          <button class="dialog-ok">OK</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+  }
+  dialog.querySelector('.dialog-message').textContent = message;
+  dialog.style.display = 'flex';
+  dialog.querySelector('.dialog-cancel').onclick = () => {
+    dialog.style.display = 'none';
+  };
+  dialog.querySelector('.dialog-ok').onclick = () => {
+    dialog.style.display = 'none';
+    if (typeof onConfirm === 'function') onConfirm();
+  };
+}
