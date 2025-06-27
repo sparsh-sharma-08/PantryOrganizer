@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/index.html';
         return;
     }
+    
     const profilePicInput = document.getElementById('profilePicInput');
     const profilePic = document.getElementById('profilePic');
     const deleteAccountModal = document.getElementById('deleteAccountModal');
@@ -302,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // In a real app, you would redirect to login page or logout
         setTimeout(() => {
             alert('You will be redirected to the login page.');
-            // window.location.href = '/login.html';
+            window.location.href = '/login.html';
         }, 2000);
     });
 
@@ -597,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleSwitches.forEach(toggle => {
         toggle.addEventListener('change', () => {
             const settingLabel = toggle.closest('.setting-item').querySelector('.setting-label').textContent;
-            console.log(`${settingLabel} is now ${toggle.checked ? 'enabled' : 'disabled'}`);
+            // Settings change handled silently
         });
     });
 
@@ -606,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectDropdowns.forEach(select => {
         select.addEventListener('change', () => {
             const settingLabel = select.closest('.setting-item').querySelector('.setting-label').textContent;
-            console.log(`${settingLabel} changed to ${select.value}`);
+            // Settings change handled silently
         });
     });
 
@@ -634,7 +635,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     openModal(deleteAccountModal);
                     break;
                 default:
-                    console.log(`Action: ${action} for ${settingLabel}`);
+                    // Handle other actions silently
+                    break;
             }
         });
     });
@@ -657,7 +659,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = '/support.html';
                     break;
                 default:
-                    console.log(`Navigating to: ${linkText}`);
+                    // Handle other links silently
+                    break;
             }
         });
     });
@@ -672,7 +675,6 @@ document.addEventListener('DOMContentLoaded', () => {
             expiryWarningDays: document.querySelector('.setting-select').value
         };
         localStorage.setItem('pantrySettings', JSON.stringify(settings));
-        console.log('Settings saved:', settings);
 
         if (window.navbarManager) {
             window.navbarManager.addNotification({
@@ -703,19 +705,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Setup password toggle functionality
+    const setupPasswordToggles = () => {
+        const passwordToggles = document.querySelectorAll('.password-toggle');
+        passwordToggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    icon.className = 'fa fa-eye-slash';
+                    this.classList.add('active');
+                } else {
+                    targetInput.type = 'password';
+                    icon.className = 'fa fa-eye';
+                    this.classList.remove('active');
+                }
+            });
+        });
+    };
+
     // Initialize settings and password toggles
     loadSettings();
     setupPasswordToggles();
 
-    // Add logout button handler
+    // Logout functionality
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.onclick = function() {
-            fetch('/api/auth/logout', { method: 'GET', credentials: 'same-origin' })
-                .finally(() => {
-                    localStorage.clear();
-                    window.location.href = '/index.html';
-                });
-        };
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+    
+    // Logout handler function
+    function handleLogout() {
+        try {
+            // Clear all stored data
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('notifications');
+            localStorage.removeItem('pantryItems');
+            localStorage.removeItem('shoppingList');
+            localStorage.removeItem('settings');
+            
+            // Redirect to index page
+            window.location.href = '/index.html';
+        } catch (error) {
+            // Fallback redirect
+            window.location.href = '/index.html';
+        }
     }
 }); 
