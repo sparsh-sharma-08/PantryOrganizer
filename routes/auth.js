@@ -15,6 +15,9 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// In-memory store for OTPs (for production, use Redis or DB)
+const otpStore = {};
+
 // --- Register ---
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
@@ -101,6 +104,57 @@ router.get('/github/callback',
 // --- Logout ---
 router.get('/logout', (req, res) => {
   req.logout(() => res.redirect('/login.html'));
+});
+
+// Send OTP to email
+router.post('/request-reset', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+    console.log('Reset request for:', email, 'User found:', !!user, 'Error:', err);
+    if (err) return res.status(500).json({ error: 'Database error' });
+    if (!user) return res.status(404).json({ error: 'This email is not associated with any account.' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 }; // 10 min expiry
+
+    // Send email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Your OTP for Password Reset',
+      text: `Your OTP is: ${otp}`
+    });
+
+    res.json({ message: 'OTP sent' });
+  });
+});
+
+// Reset password with OTP
+router.post('/reset-password', async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  if (!email || !otp || !newPassword) return res.status(400).json({ error: 'All fields required' });
+
+  const record = otpStore[email];
+  if (!record || record.otp !== otp || Date.now() > record.expires) {
+    return res.status(400).json({ error: 'Invalid or expired OTP' });
+  }
+
+  // Hash new password
+  const hash = await bcrypt.hash(newPassword, 10);
+  db.run('UPDATE users SET password_hash = ? WHERE email = ?', [hash, email], function(err) {
+    if (err) {
+      console.error('DB error on password reset:', err);
+      return res.status(500).json({ error: 'Failed to update password', details: err.message });
+    }
+    if (this.changes === 0) {
+      // No rows updated, likely email not found
+      return res.status(404).json({ error: 'No user found with this email.' });
+    }
+    delete otpStore[email];
+    res.json({ message: 'Password reset successful' });
+  });
 });
 
 module.exports = router;

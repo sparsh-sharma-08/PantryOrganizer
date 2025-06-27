@@ -12,6 +12,11 @@ const STATIC_CATEGORIES = [
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    // Session check: redirect to index.html if not logged in
+    if (!getToken()) {
+        window.location.href = '/index.html';
+        return;
+    }
     // Initialize summary cards with 0 values
     initializeSummaryCards();
     loadCategories();
@@ -74,10 +79,32 @@ async function loadItems() {
                                 type: 'system',
                                 title: 'Stock Running Low',
                                 message: `${item.name} is running low in your pantry. Consider restocking soon!`,
-                                actions: ['View Item']
+                                actions: ['View Item'],
+                                itemId: item.id
                             });
                             localStorage.setItem(notifKey, '1');
                         }
+                    }
+                });
+                // Expiry reminder notification
+                const settings = JSON.parse(localStorage.getItem('pantrySettings') || '{}');
+                const expiryWarningDays = parseInt(settings.expiryWarningDays) || 2;
+                allItems.forEach(item => {
+                    const expDate = new Date(item.expiry_date);
+                    const today = new Date();
+                    const diffTime = expDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const notifKey = `expiry-${item.id}`;
+                    const notified = localStorage.getItem(notifKey);
+                    if (diffDays >= 0 && diffDays <= expiryWarningDays && !notified) {
+                        window.navbarManager.addNotification({
+                            type: 'expiry',
+                            title: 'Item Expiring Soon',
+                            message: `${item.name} will expire in ${diffDays === 0 ? 'today' : diffDays + ' day(s)'}.`,
+                            actions: ['View Item'],
+                            itemId: item.id
+                        });
+                        localStorage.setItem(notifKey, '1');
                     }
                 });
             }

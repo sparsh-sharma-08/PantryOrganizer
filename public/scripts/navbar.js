@@ -42,49 +42,8 @@ class NavbarManager {
         if (stored) {
             return JSON.parse(stored);
         }
-        
-        // Default notifications
-        const defaultNotifications = [
-            {
-                id: 1,
-                type: 'expiry',
-                title: 'Item Expiring Soon',
-                message: 'Milk will expire in 1 day. Consider using it soon or adding it to your shopping list.',
-                time: '2 hours ago',
-                unread: true,
-                actions: ['View Item', 'Add to Shopping List']
-            },
-            {
-                id: 2,
-                type: 'shopping',
-                title: 'Shopping List Reminder',
-                message: 'You have 5 items in your shopping list. Don\'t forget to pick them up!',
-                time: '1 day ago',
-                unread: true,
-                actions: ['View Shopping List']
-            },
-            {
-                id: 3,
-                type: 'expiry',
-                title: 'Multiple Items Expiring',
-                message: '3 items in your pantry will expire within the next 2 days.',
-                time: '1 day ago',
-                unread: true,
-                actions: ['View Expiring Items']
-            },
-            {
-                id: 4,
-                type: 'system',
-                title: 'Welcome to Smart Pantry!',
-                message: 'Your account has been successfully created. Start adding items to your pantry to get the most out of the app.',
-                time: '3 days ago',
-                unread: false,
-                actions: ['Get Started']
-            }
-        ];
-        
-        localStorage.setItem('smartPantryNotifications', JSON.stringify(defaultNotifications));
-        return defaultNotifications;
+        // Return empty array if no notifications in localStorage
+        return [];
     }
 
     // Setup navbar links with consistent behavior

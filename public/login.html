@@ -61,7 +61,45 @@
           Don't have an account?
           <a href="/signup.html" class="login-link">Sign Up</a>
         </p>
+
+        <p style="text-align:center;">
+          <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+        </p>
       </form>
+    </div>
+  </div>
+
+  <!-- Reset Password Modal -->
+  <div id="resetModal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h2>Reset Password</h2>
+      <form id="resetStep1">
+        <label>
+          Enter your email:
+          <input type="email" id="resetEmail" required />
+        </label>
+        <button type="submit">Send OTP</button>
+        <button type="button" id="closeResetModal">Cancel</button>
+      </form>
+      <form id="resetStep2" style="display:none;">
+        <label>
+          Enter OTP:
+          <input type="text" id="resetOtp" required />
+        </label>
+        <label style="position:relative;">
+          New Password:
+          <input type="password" id="resetNewPassword" required />
+          <i class="fa-regular fa-eye toggle-reset-password" id="reset-password-toggle" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);cursor:pointer; padding-top: 1rem;"></i>
+        </label>
+        <label style="position:relative;">
+          Confirm Password:
+          <input type="password" id="resetConfirmPassword" required />
+          <i class="fa-regular fa-eye toggle-reset-password" id="reset-confirm-password-toggle" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);cursor:pointer; padding-top: 1rem;"></i>
+        </label>
+        <button type="submit">Reset Password</button>
+        <button type="button" id="closeResetModal2">Cancel</button>
+      </form>
+      <div id="resetMessage" style="color:red;margin-top:10px;"></div>
     </div>
   </div>
 
@@ -81,5 +119,6 @@
     });
   </script>
   <script src="/scripts/app.js"></script>
+  <script src="/scripts/reset-password.js"></script>
 </body>
 </html>

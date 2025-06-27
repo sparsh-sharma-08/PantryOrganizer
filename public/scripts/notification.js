@@ -1,9 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+  if (!localStorage.getItem('token')) {
+    window.location.href = '/index.html';
+    return;
+  }
   const notificationsList = document.getElementById('notificationsList');
   const markAllReadBtn = document.getElementById('markAllReadBtn');
   const clearAllBtn = document.getElementById('clearAllBtn');
   const filterBtns = document.querySelectorAll('.filter-btn');
   const emptyState = document.getElementById('emptyState');
+
+  let currentFilter = 'all';
 
   // Mark all notifications as read
   markAllReadBtn.addEventListener('click', () => {
@@ -18,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     updateEmptyState();
+    renderNotifications();
   });
 
   // Clear all notifications
@@ -40,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateEmptyState();
         showToast('Notifications cleared successfully');
+        renderNotifications();
       }
     });
   });
@@ -47,23 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Filter notifications
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      const filter = btn.getAttribute('data-filter');
-      
-      // Update active filter button
+      currentFilter = btn.getAttribute('data-filter');
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      
-      // Filter notifications
-      const notifications = document.querySelectorAll('.notification-item');
-      notifications.forEach(notification => {
-        const type = notification.getAttribute('data-type');
-        if (filter === 'all' || type === filter) {
-          notification.style.display = 'flex';
-        } else {
-          notification.style.display = 'none';
-        }
-      });
-      
+      renderNotifications();
       updateEmptyState();
     });
   });
@@ -81,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       updateEmptyState();
+      renderNotifications();
     }
   });
 
@@ -89,11 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.closest('.action-btn')) {
       const actionBtn = e.target.closest('.action-btn');
       const action = actionBtn.textContent.trim();
-      
-      // Handle different actions
+      const notificationDiv = actionBtn.closest('.notification-item');
+      const notificationId = parseInt(notificationDiv.getAttribute('data-id'));
+      const notifications = window.navbarManager.getNotifications();
+      const notification = notifications.find(n => n.id === notificationId);
       switch(action) {
         case 'View Item':
-          alert('Viewing item details...');
+          if (notification && notification.itemId) {
+            window.location.href = `/dashboard.html?itemId=${notification.itemId}`;
+          } else {
+            window.location.href = '/dashboard.html';
+          }
           break;
         case 'Add to Shopping List':
           alert('Added to shopping list!');
@@ -127,8 +129,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initialize
-  updateEmptyState();
+  function renderNotifications() {
+    if (!window.navbarManager) return;
+    const notifications = window.navbarManager.getNotifications();
+    notificationsList.innerHTML = '';
+    let filtered = notifications;
+    if (currentFilter !== 'all') {
+      filtered = notifications.filter(n => n.type === currentFilter);
+    }
+    if (filtered.length === 0) {
+      emptyState.style.display = 'block';
+      return;
+    }
+    emptyState.style.display = 'none';
+    filtered.forEach(n => {
+      const notifDiv = document.createElement('div');
+      notifDiv.className = 'notification-item' + (n.unread ? ' unread' : '');
+      notifDiv.setAttribute('data-type', n.type);
+      notifDiv.setAttribute('data-id', n.id);
+      notifDiv.innerHTML = `
+        <div class="notification-icon ${n.type}">
+          <i class="fa ${n.type === 'expiry' ? 'fa-exclamation-triangle' : n.type === 'shopping' ? 'fa-shopping-cart' : 'fa-info-circle'}"></i>
+        </div>
+        <div class="notification-content">
+          <div class="notification-header">
+            <h3>${n.title}</h3>
+            <span class="notification-time">${n.time || ''}</span>
+          </div>
+          <p>${n.message}</p>
+          <div class="notification-actions">
+            ${(n.actions || []).map(a => `<button class="action-btn">${a}</button>`).join('')}
+          </div>
+        </div>
+        <button class="mark-read-btn" title="Mark as read">
+          <i class="fa fa-check"></i>
+        </button>
+      `;
+      notificationsList.appendChild(notifDiv);
+    });
+  }
+
+  // Call renderNotifications on load
+  renderNotifications();
 });
 
 // Custom confirm dialog

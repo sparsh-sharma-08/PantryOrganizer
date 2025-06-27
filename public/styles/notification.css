@@ -423,20 +423,18 @@ main {
   z-index: 0;
 }
 #customConfirmDialog .dialog-box {
-  position: relative;
-  z-index: 1;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(39,140,240,0.18);
-  padding: 2rem 1.5rem 1.2rem 1.5rem;
-  min-width: 270px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  padding: 2rem;
+  min-width: 320px;
   max-width: 90vw;
-  text-align: center;
-  animation: dialogPop 0.2s cubic-bezier(.4,2,.6,1);
-}
-@keyframes dialogPop {
-  from { transform: scale(0.92); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  z-index: 9999;
+  animation: slideIn 0.3s ease;
 }
 .dialog-message {
   font-size: 1.1rem;

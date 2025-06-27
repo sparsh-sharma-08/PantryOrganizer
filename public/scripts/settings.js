@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Session check: redirect to index.html if not logged in
+    if (!localStorage.getItem('token')) {
+        window.location.href = '/index.html';
+        return;
+    }
     const profilePicInput = document.getElementById('profilePicInput');
     const profilePic = document.getElementById('profilePic');
     const deleteAccountModal = document.getElementById('deleteAccountModal');
@@ -701,4 +706,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize settings and password toggles
     loadSettings();
     setupPasswordToggles();
+
+    // Add logout button handler
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.onclick = function() {
+            fetch('/api/auth/logout', { method: 'GET', credentials: 'same-origin' })
+                .finally(() => {
+                    localStorage.clear();
+                    window.location.href = '/index.html';
+                });
+        };
+    }
 }); 

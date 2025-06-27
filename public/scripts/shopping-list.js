@@ -320,7 +320,13 @@ async function clearAllBought() {
   }
 }
 addItemBtn.addEventListener('click', addItem);
-document.addEventListener('DOMContentLoaded', fetchShoppingList);
+document.addEventListener('DOMContentLoaded', function() {
+    if (!localStorage.getItem('token')) {
+        window.location.href = '/index.html';
+        return;
+    }
+    fetchShoppingList();
+});
 
 function showNotification(message, type = 'info') {
   let notif = document.getElementById('customNotificationBox');

@@ -65,7 +65,7 @@ db.serialize(() => {
 
   // Add index for performance
   db.run(`
-    CREATE INDEX idx_pantry_items_user_id ON pantry_items(user_id);
+    CREATE INDEX IF NOT EXISTS idx_pantry_items_user_id ON pantry_items(user_id);
   `);
 });
 
