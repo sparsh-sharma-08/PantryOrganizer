@@ -5,6 +5,7 @@ const jwt     = require('jsonwebtoken');
 const passport = require('passport');
 const nodemailer = require('nodemailer');
 const db = require('../database');
+const requireAuth = require('../middleware/requireAuth');
 
 const router = express.Router();
 const transporter = nodemailer.createTransport({
@@ -20,9 +21,9 @@ const otpStore = {};
 
 // --- Register ---
 router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: 'Email & password required' });
+  const { name, email, password } = req.body;
+  if (!name || !email || !password)
+    return res.status(400).json({ error: 'Name, email & password required' });
 
   db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -31,8 +32,8 @@ router.post('/register', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     db.run(
-      'INSERT INTO users (email, password_hash, verification_code) VALUES (?, ?, ?)',
-      [email, hash, code],
+      'INSERT INTO users (name, email, password_hash, verification_code) VALUES (?, ?, ?, ?)',
+      [name, email, hash, code],
       function (err) {
         if (err) return res.status(500).json({ error: err.message });
 
@@ -104,6 +105,44 @@ router.get('/github/callback',
 // --- Logout ---
 router.get('/logout', (req, res) => {
   req.logout(() => res.redirect('/login.html'));
+});
+
+// --- Get Profile ---
+router.get('/profile', requireAuth, (req, res) => {
+  db.get('SELECT id, name, email, profile_photo, created_at FROM users WHERE id = ?', [req.user.id], (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  });
+});
+
+// --- Update Profile ---
+router.put('/profile', requireAuth, (req, res) => {
+  const { name, email, profile_photo } = req.body;
+  if (!name || !email) return res.status(400).json({ error: 'Name and email required' });
+
+  // Check if email is already taken by another user
+  db.get('SELECT id FROM users WHERE email = ? AND id != ?', [email, req.user.id], (err, existingUser) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (existingUser) return res.status(400).json({ error: 'Email already in use' });
+
+    // Build update query based on what's provided
+    let updateQuery = 'UPDATE users SET name = ?, email = ?';
+    let params = [name, email];
+    
+    if (profile_photo !== undefined) {
+      updateQuery += ', profile_photo = ?';
+      params.push(profile_photo);
+    }
+    
+    updateQuery += ' WHERE id = ?';
+    params.push(req.user.id);
+
+    db.run(updateQuery, params, function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Profile updated successfully' });
+    });
+  });
 });
 
 // Send OTP to email

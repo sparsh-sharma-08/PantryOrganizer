@@ -178,16 +178,18 @@ async function deleteItem(list, itemIndex) {
         headers: { 'Authorization': 'Bearer ' + getToken() }
       });
       fetchShoppingList();
+      
+      // Add notification only after user confirms
+      if (window.navbarManager) {
+        window.navbarManager.addNotification({
+            type: 'shopping',
+            title: 'Item Deleted',
+            message: `An item was deleted from your shopping list.`,
+            actions: ['View Changes']
+        });
+      }
     })();
   });
-  if (window.navbarManager) {
-    window.navbarManager.addNotification({
-        type: 'shopping',
-        title: 'Item Deleted',
-        message: `An item was deleted from your shopping list.`,
-        actions: ['View Changes']
-    });
-  }
 }
 function formatDate(dateString) {
   if (!dateString) return '';
@@ -287,16 +289,18 @@ async function clearAllToBuy() {
         });
       }
       fetchShoppingList();
+      
+      // Add notification only after user confirms
+      if (window.navbarManager) {
+        window.navbarManager.addNotification({
+            type: 'shopping',
+            title: 'Shopping List Cleared',
+            message: `All items were cleared from your shopping list (To Buy).`,
+            actions: ['View Shopping List']
+        });
+      }
     })();
   });
-  if (window.navbarManager) {
-    window.navbarManager.addNotification({
-        type: 'shopping',
-        title: 'Shopping List Cleared',
-        message: `All items were cleared from your shopping list (${arguments.callee.name === 'clearAllToBuy' ? 'To Buy' : 'Bought'}).`,
-        actions: ['View Shopping List']
-    });
-  }
 }
 async function clearAllBought() {
   showConfirm('Are you sure you want to clear all Bought items?', () => {
@@ -308,16 +312,18 @@ async function clearAllBought() {
         });
       }
       fetchShoppingList();
+      
+      // Add notification only after user confirms
+      if (window.navbarManager) {
+        window.navbarManager.addNotification({
+            type: 'shopping',
+            title: 'Shopping List Cleared',
+            message: `All items were cleared from your shopping list (Bought).`,
+            actions: ['View Shopping List']
+        });
+      }
     })();
   });
-  if (window.navbarManager) {
-    window.navbarManager.addNotification({
-        type: 'shopping',
-        title: 'Shopping List Cleared',
-        message: `All items were cleared from your shopping list (${arguments.callee.name === 'clearAllBought' ? 'Bought' : 'To Buy'}).`,
-        actions: ['View Shopping List']
-    });
-  }
 }
 addItemBtn.addEventListener('click', addItem);
 document.addEventListener('DOMContentLoaded', function() {

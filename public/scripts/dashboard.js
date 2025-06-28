@@ -255,6 +255,10 @@ function setupEventListeners() {
     };
     
     editForm.onsubmit = handleEditItem;
+    
+    // Clear All button
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    clearAllBtn.onclick = handleClearAll;
 }
 
 // Attach listeners to card buttons
@@ -416,6 +420,53 @@ async function handleDeleteItem(itemId) {
     });
 }
 
+// Handle clear all items
+async function handleClearAll() {
+    if (allItems.length === 0) {
+        showNotification('No items to clear', 'info');
+        return;
+    }
+    
+    showConfirm('Are you sure you want to clear all pantry items? This action cannot be undone.', () => {
+        (async () => {
+            try {
+                // Delete all items one by one
+                const deletePromises = allItems.map(item => 
+                    fetch(`/api/items/${item.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + getToken() }
+                    })
+                );
+                
+                await Promise.all(deletePromises);
+                
+                // Clear the local array
+                allItems = [];
+                
+                // Update the UI
+                renderItems();
+                updateSummaryCards();
+                
+                // Show success notification
+                if (window.navbarManager) {
+                    window.navbarManager.addNotification({
+                        type: 'system',
+                        title: 'Pantry Cleared',
+                        message: 'All items have been removed from your pantry.',
+                        actions: ['Add New Items']
+                    });
+                }
+                
+                showNotification('All pantry items have been cleared successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error clearing all items:', error);
+                showNotification('Error clearing items. Please try again.', 'error');
+            }
+        })();
+    });
+}
+
 // Update summary cards
 function updateSummaryCards() {
     const totalItems = allItems.length;
@@ -463,7 +514,13 @@ function showNotification(message, type = 'info') {
         document.body.appendChild(notif);
     }
     notif.textContent = message;
-    notif.style.background = type === 'error' ? '#e74c3c' : '#3498db';
+    if (type === 'error') {
+        notif.style.background = '#e74c3c';
+    } else if (type === 'success') {
+        notif.style.background = '#27ae60';
+    } else {
+        notif.style.background = '#3498db';
+    }
     notif.style.color = '#fff';
     notif.style.display = 'block';
     setTimeout(() => { notif.style.display = 'none'; }, 3500);

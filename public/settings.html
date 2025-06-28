@@ -27,7 +27,9 @@
     </div>
     <div class="nav-actions">
       <a href="/settings.html" class="avatar-link">
-        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="avatar"/>
+        <div class="avatar-placeholder" id="userAvatar">
+          <i class="fa fa-user"></i>
+        </div>
       </a>
     </div>
   </nav>
@@ -46,10 +48,12 @@
           </div>
           <div class="card-content">
             <div class="profile-info">
-              <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Profile" class="profile-avatar" id="currentProfilePic"/>
+              <div class="profile-avatar-placeholder" id="currentProfilePic">
+                <i class="fa fa-user"></i>
+              </div>
               <div class="profile-details">
-                <h3 id="currentName">Sarah Johnson</h3>
-                <p id="currentUsername">sarah.johnson@email.com</p>
+                <h3 id="currentName">Loading...</h3>
+                <p id="currentUsername">Loading...</p>
                 <button class="edit-profile-btn" id="editProfileBtn">Edit Profile</button>
               </div>
             </div>
@@ -214,7 +218,9 @@
           <div class="form-group">
             <label for="profilePhoto">Profile Photo</label>
             <div class="photo-upload-container">
-              <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Profile Preview" id="profilePhotoPreview" class="photo-preview"/>
+              <div class="photo-preview profile-avatar-placeholder" id="profilePhotoPreview">
+                <i class="fa fa-user"></i>
+              </div>
               <div class="photo-upload-controls">
                 <input type="file" id="profilePhotoInput" accept="image/*" class="photo-input"/>
                 <label for="profilePhotoInput" class="photo-upload-btn">
@@ -226,12 +232,12 @@
           
           <div class="form-group">
             <label for="editName">Full Name</label>
-            <input type="text" id="editName" value="Sarah Johnson" required>
+            <input type="text" id="editName" placeholder="Enter your full name" required>
           </div>
           
           <div class="form-group">
-            <label for="editUsername">Username</label>
-            <input type="text" id="editUsername" value="sarah.johnson@email.com" required>
+            <label for="editEmail">Email Address</label>
+            <input type="email" id="editEmail" placeholder="Enter your email address" required>
           </div>
           
           <div class="form-actions">

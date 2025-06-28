@@ -140,6 +140,30 @@ body {
   background: #fff;
 }
 
+.clear-all-btn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.clear-all-btn:hover {
+  background: #b91c1c;
+}
+
+.clear-all-btn i {
+  font-size: 0.85rem;
+}
+
 .summary-cards {
   display: flex;
   gap: 18px;
@@ -182,10 +206,13 @@ body {
   font-size: 1.3rem;
   color: #fff;
   border-radius: 50%;
-  padding: 7px 10px;
+  padding: 10px 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+#expiredIcon{
+  padding: 10px 18px;
 }
 
 .bg-blue { background: #2563eb; }
@@ -298,6 +325,10 @@ body {
   .search-filter-row {
     flex-direction: column;
     gap: 8px;
+  }
+  .clear-all-btn {
+    width: 100%;
+    justify-content: center;
   }
   .summary-cards {
     flex-direction: column;

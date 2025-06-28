@@ -2,6 +2,7 @@
 if (window.location.pathname.endsWith('signup.html')) {
     document.querySelector('.signUpForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
@@ -12,7 +13,7 @@ if (window.location.pathname.endsWith('signup.html')) {
         const res = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ name, email, password })
         });
         const data = await res.json();
         if (res.ok) {
@@ -73,8 +74,27 @@ if (window.location.pathname.endsWith('login.html')) {
         });
         const data = await res.json();
         if (res.ok) {
-            // Store JWT in localStorage (or cookie)
+            // Store JWT in localStorage
             localStorage.setItem('token', data.token);
+            
+            // Fetch user profile to get profile photo
+            try {
+                const profileRes = await fetch('/api/auth/profile', {
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${data.token}`
+                    }
+                });
+                if (profileRes.ok) {
+                    const profileData = await profileRes.json();
+                    if (profileData.profile_photo) {
+                        localStorage.setItem('userAvatar', profileData.profile_photo);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch profile photo:', error);
+            }
+            
             window.location.href = '/dashboard.html';
         } else {
             alert(data.error || 'Login failed');

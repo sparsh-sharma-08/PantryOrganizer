@@ -5,16 +5,45 @@ class NavbarManager {
         this.init();
     }
 
-    init() {
+    async init() {
         this.updateNotificationCount();
         this.setupNavbarLinks();
         this.updateActivePage();
-        this.updateUserAvatar();
+        await this.fetchAndSetUserAvatar();
+        
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+            this.updateUserAvatar();
+        }, 100);
         
         // Update notification count every 30 seconds
         setInterval(() => {
             this.updateNotificationCount();
         }, 30000);
+    }
+
+    // Fetch profile photo from backend and update localStorage
+    async fetchAndSetUserAvatar() {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        try {
+            const res = await fetch('/api/auth/profile', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.profile_photo) {
+                    localStorage.setItem('userAvatar', data.profile_photo);
+                } else {
+                    localStorage.removeItem('userAvatar');
+                }
+            }
+        } catch (err) {
+            // Fail silently
+        }
     }
 
     // Update notification count based on unread notifications
@@ -77,11 +106,16 @@ class NavbarManager {
     // Update user avatar from localStorage if available
     updateUserAvatar() {
         const storedAvatar = localStorage.getItem('userAvatar');
-        if (storedAvatar) {
-            const avatars = document.querySelectorAll('.avatar');
-            avatars.forEach(avatar => {
-                avatar.src = storedAvatar;
-            });
+        const avatarDiv = document.getElementById('userAvatar');
+        
+        if (avatarDiv) {
+            if (storedAvatar) {
+                // Show uploaded photo
+                avatarDiv.innerHTML = `<img src="${storedAvatar}" alt="User" class="avatar"/>`;
+            } else {
+                // Show placeholder icon
+                avatarDiv.innerHTML = `<i class="fa fa-user"></i>`;
+            }
         }
     }
 
@@ -129,11 +163,25 @@ class NavbarManager {
     getNotificationCount() {
         return this.notificationCount;
     }
+
+    // Force refresh user avatar (called when profile photo changes)
+    forceRefreshAvatar() {
+        this.fetchAndSetUserAvatar().then(() => {
+            this.updateUserAvatar();
+        });
+    }
 }
 
 // Initialize navbar when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.navbarManager = new NavbarManager();
+    
+    // Update avatar when page becomes visible (in case user switches tabs)
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && window.navbarManager) {
+            window.navbarManager.updateUserAvatar();
+        }
+    });
 });
 
 // Export for use in other scripts

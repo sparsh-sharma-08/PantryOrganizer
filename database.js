@@ -11,9 +11,11 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
       username TEXT UNIQUE,
       email TEXT UNIQUE,
       password_hash TEXT,
+      profile_photo TEXT,
       is_verified INTEGER DEFAULT 0,
       verification_code TEXT,
       google_id TEXT,
@@ -21,6 +23,20 @@ db.serialize(() => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Add name column if it doesn't exist (for existing databases)
+  db.run(`ALTER TABLE users ADD COLUMN name TEXT`, (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.error('Error adding name column:', err.message);
+    }
+  });
+
+  // Add profile_photo column if it doesn't exist (for existing databases)
+  db.run(`ALTER TABLE users ADD COLUMN profile_photo TEXT`, (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.error('Error adding profile_photo column:', err.message);
+    }
+  });
 
   // Pantry items: scoped by user_id
   db.run(`

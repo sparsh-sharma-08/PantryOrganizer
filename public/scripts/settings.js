@@ -5,6 +5,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
+    // Check for pending clear notifications
+    const urlParams = new URLSearchParams(window.location.search);
+    const clearNotifications = urlParams.get('clearNotifications');
+    const pendingClear = localStorage.getItem('pendingClearNotifications');
+    
+    if (clearNotifications === 'true' && pendingClear === 'true') {
+        // Clear all notifications and update count
+        if (window.navbarManager) {
+            window.navbarManager.clearAllNotifications();
+        }
+        localStorage.removeItem('pendingClearNotifications');
+        
+        // Show confirmation message
+        showSuccessMessage('All notifications have been cleared successfully!');
+        
+        // Clean up URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+    
     const profilePicInput = document.getElementById('profilePicInput');
     const profilePic = document.getElementById('profilePic');
     const deleteAccountModal = document.getElementById('deleteAccountModal');
@@ -55,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const profilePhotoInput = document.getElementById('profilePhotoInput');
     const profilePhotoPreview = document.getElementById('profilePhotoPreview');
     const editName = document.getElementById('editName');
-    const editUsername = document.getElementById('editUsername');
+    const editEmail = document.getElementById('editEmail');
     
     // Display elements
     const currentProfilePic = document.getElementById('currentProfilePic');
@@ -71,6 +91,89 @@ document.addEventListener('DOMContentLoaded', () => {
         username: currentUsername.textContent,
         profilePic: currentProfilePic.src
     };
+
+    // API helper functions
+    function getToken() {
+        return localStorage.getItem('token');
+    }
+
+    async function apiCall(endpoint, options = {}) {
+        const token = getToken();
+        const defaultOptions = {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        };
+        
+        const response = await fetch(`/api${endpoint}`, { ...defaultOptions, ...options });
+        
+        if (!response.ok) {
+            throw new Error(`API call failed: ${response.status}`);
+        }
+        
+        return response.json();
+    }
+
+    // Load user profile data
+    async function loadUserProfile() {
+        try {
+            const userData = await apiCall('/auth/profile');
+            currentName.textContent = userData.name || 'No name set';
+            currentUsername.textContent = userData.email || 'No email set';
+            
+            // Store user data for edit form
+            window.currentUserData = userData;
+            
+            // Handle profile photo
+            if (userData.profile_photo) {
+                // Set profile photo in localStorage and update UI
+                localStorage.setItem('userAvatar', userData.profile_photo);
+                // Update the main profile picture in the settings card
+                currentProfilePic.innerHTML = `<img src="${userData.profile_photo}" alt="Profile" class="avatar"/>`;
+                if (window.navbarManager) {
+                    window.navbarManager.updateUserAvatar();
+                }
+            } else {
+                // Clear any existing profile photo
+                localStorage.removeItem('userAvatar');
+                // Show placeholder in the main profile picture
+                currentProfilePic.innerHTML = `<i class="fa fa-user"></i>`;
+                if (window.navbarManager) {
+                    window.navbarManager.updateUserAvatar();
+                }
+            }
+            
+            // Update navbar avatar as well
+            const navbarAvatar = document.getElementById('userAvatar');
+            if (navbarAvatar) {
+                if (userData.profile_photo) {
+                    navbarAvatar.innerHTML = `<img src="${userData.profile_photo}" alt="User" class="avatar"/>`;
+                } else {
+                    navbarAvatar.innerHTML = `<i class="fa fa-user"></i>`;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load user profile:', error);
+            currentName.textContent = 'Error loading profile';
+            currentUsername.textContent = 'Error loading email';
+        }
+    }
+
+    // Populate edit form with current user data
+    function populateEditForm() {
+        if (window.currentUserData) {
+            editName.value = window.currentUserData.name || '';
+            editEmail.value = window.currentUserData.email || '';
+            
+            // Populate profile photo preview
+            if (window.currentUserData.profile_photo) {
+                profilePhotoPreview.innerHTML = `<img src="${window.currentUserData.profile_photo}" alt="Profile Preview" class="avatar"/>`;
+            } else {
+                profilePhotoPreview.innerHTML = `<i class="fa fa-user"></i>`;
+            }
+        }
+    }
 
     // Show success message function
     function showSuccessMessage(message = 'Successfully updated the profile') {
@@ -94,7 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event listeners for edit profile modal
-    editProfileBtn.addEventListener('click', () => openModal(editProfileModal));
+    editProfileBtn.addEventListener('click', () => {
+        populateEditForm();
+        openModal(editProfileModal);
+    });
     closeModal.addEventListener('click', () => closeModalFunc(editProfileModal));
     cancelEdit.addEventListener('click', () => closeModalFunc(editProfileModal));
 
@@ -155,30 +261,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Please select an image file.');
                 return;
             }
-            
             // Validate file size (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
                 alert('Image size should be less than 5MB.');
                 return;
             }
-
             const reader = new FileReader();
             reader.onload = (event) => {
-                profilePhotoPreview.src = event.target.result;
+                profilePhotoPreview.innerHTML = `<img src="${event.target.result}" alt="Profile Preview" class="avatar"/>`;
+                // Update the main profile picture in the settings card
+                currentProfilePic.innerHTML = `<img src="${event.target.result}" alt="Profile" class="avatar"/>`;
+                // Save to localStorage for global avatar use
+                localStorage.setItem('userAvatar', event.target.result);
+                if (window.navbarManager) {
+                    window.navbarManager.updateUserAvatar();
+                }
             };
             reader.readAsDataURL(file);
         }
     });
 
     // Edit profile form submission
-    editProfileForm.addEventListener('submit', (e) => {
+    editProfileForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const newName = editName.value.trim();
-        const newUsername = editUsername.value.trim();
+        const newEmail = editEmail.value.trim();
         
         // Basic validation
-        if (!newName || !newUsername) {
+        if (!newName || !newEmail) {
             alert('Please fill in all fields.');
             return;
         }
@@ -188,48 +299,67 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        if (newUsername.length < 3) {
-            alert('Username must be at least 3 characters long.');
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(newEmail)) {
+            alert('Please enter a valid email address.');
             return;
         }
 
-        // Update the display
-        currentName.textContent = newName;
-        currentUsername.textContent = newUsername;
-        
-        // Update profile picture if changed
-        if (profilePhotoPreview.src !== currentProfilePic.src) {
-            currentProfilePic.src = profilePhotoPreview.src;
+        try {
+            // Update profile via API
+            const updateData = {
+                name: newName,
+                email: newEmail
+            };
+            
+            // Include profile photo if it was uploaded
+            const storedAvatar = localStorage.getItem('userAvatar');
+            if (storedAvatar && storedAvatar !== profilePhotoPreview.src) {
+                updateData.profile_photo = storedAvatar;
+            }
+            
+            const result = await apiCall('/auth/profile', {
+                method: 'PUT',
+                body: JSON.stringify(updateData)
+            });
+            
+            if (result.message === 'Profile updated successfully') {
+                // Update the display
+                currentName.textContent = newName;
+                currentUsername.textContent = newEmail;
+                
+                // Force refresh avatar across all pages
+                if (window.navbarManager) {
+                    window.navbarManager.forceRefreshAvatar();
+                }
+                
+                // Close modal
+                closeModalFunc(editProfileModal);
+                
+                // Show success message
+                showSuccessMessage('Profile updated successfully');
+                
+                // Add notification
+                if (window.navbarManager) {
+                    window.navbarManager.addNotification({
+                        type: 'system',
+                        title: 'Profile Updated',
+                        message: 'Your profile information was updated successfully.',
+                        actions: ['View Profile']
+                    });
+                }
+            } else {
+                throw new Error(result.error || 'Failed to update profile');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert('Failed to update profile. Please try again.');
         }
-        
-        // Update navbar avatar if it exists
-        const navbarAvatar = document.querySelector('.navbar .avatar');
-        if (navbarAvatar && profilePhotoPreview.src !== navbarAvatar.src) {
-            navbarAvatar.src = profilePhotoPreview.src;
-        }
-        
-        // Update localStorage for navbar manager
-        localStorage.setItem('userAvatar', profilePhotoPreview.src);
-        
-        // Update all avatars across the app if navbar manager exists
-        if (window.navbarManager) {
-            window.navbarManager.updateUserAvatar();
-        }
-        
-        // Close modal
-        closeModalFunc(editProfileModal);
-        
-        // Show success message
-        showSuccessMessage('Successfully updated the profile');
-        
-        // Update initial values
-        initialValues.name = newName;
-        initialValues.username = newUsername;
-        initialValues.profilePic = profilePhotoPreview.src;
     });
 
     // Change password form submission
-    changePasswordForm.addEventListener('submit', (e) => {
+    changePasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const currentPassword = document.getElementById('currentPassword').value;
@@ -252,17 +382,42 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Simulate password change (in real app, this would make an API call)
-        console.log('Password changed:', { currentPassword, newPassword });
-        
-        // Close modal
-        closeModalFunc(changePasswordModal);
-        
-        // Show success message
-        showSuccessMessage('Password changed successfully');
-        
-        // Clear form
-        changePasswordForm.reset();
+        try {
+            // Change password via API
+            const result = await apiCall('/auth/change-password', {
+                method: 'POST',
+                body: JSON.stringify({
+                    currentPassword,
+                    newPassword
+                })
+            });
+            
+            if (result.message === 'success') {
+                // Close modal
+                closeModalFunc(changePasswordModal);
+                
+                // Show success message
+                showSuccessMessage('Password changed successfully');
+                
+                // Clear form
+                changePasswordForm.reset();
+                
+                // Add notification
+                if (window.navbarManager) {
+                    window.navbarManager.addNotification({
+                        type: 'system',
+                        title: 'Password Changed',
+                        message: 'Your password was changed successfully.',
+                        actions: ['Secure Account']
+                    });
+                }
+            } else {
+                throw new Error(result.error || 'Failed to change password');
+            }
+        } catch (error) {
+            console.error('Error changing password:', error);
+            alert('Failed to change password. Please check your current password and try again.');
+        }
     });
 
     // Delete account confirmation logic
@@ -271,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Delete account form submission
-    deleteAccountForm.addEventListener('submit', (e) => {
+    deleteAccountForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const confirmText = deleteConfirmText.value;
@@ -287,91 +442,143 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Simulate account deletion (in real app, this would make an API call)
-        console.log('Account deleted:', { password });
-        
-        // Show success message
-        showSuccessMessage('Account deleted successfully');
-        
-        // Close modal
-        closeModalFunc(deleteAccountModal);
-        
-        // Clear form
-        deleteAccountForm.reset();
-        confirmDelete.disabled = true;
-        
-        // In a real app, you would redirect to login page or logout
-        setTimeout(() => {
-            alert('You will be redirected to the login page.');
-            window.location.href = '/login.html';
-        }, 2000);
+        try {
+            // Delete account via API
+            const result = await apiCall('/auth/delete-account', {
+                method: 'DELETE',
+                body: JSON.stringify({
+                    password
+                })
+            });
+            
+            if (result.message === 'success') {
+                // Show success message
+                showSuccessMessage('Account deleted successfully');
+                
+                // Close modal
+                closeModalFunc(deleteAccountModal);
+                
+                // Clear form
+                deleteAccountForm.reset();
+                confirmDelete.disabled = true;
+                
+                // Clear all local data
+                localStorage.clear();
+                
+                // Redirect to login page
+                setTimeout(() => {
+                    alert('Your account has been deleted. You will be redirected to the login page.');
+                    window.location.href = '/login.html';
+                }, 2000);
+            } else {
+                throw new Error(result.error || 'Failed to delete account');
+            }
+        } catch (error) {
+            console.error('Error deleting account:', error);
+            alert('Failed to delete account. Please check your password and try again.');
+        }
     });
 
     // Export data functionality
-    startExport.addEventListener('click', () => {
+    startExport.addEventListener('click', async () => {
         const format = document.getElementById('exportFormat').value;
         const includeItems = document.getElementById('exportItems').checked;
         const includeCategories = document.getElementById('exportCategories').checked;
         const includeShoppingLists = document.getElementById('exportShoppingLists').checked;
         const includeSettings = document.getElementById('exportSettings').checked;
         
-        // Get data based on selected options
-        const exportData = {
-            items: includeItems ? getMockPantryItems() : [],
-            categories: includeCategories ? getMockCategories() : [],
-            shoppingLists: includeShoppingLists ? getMockShoppingLists() : [],
-            settings: includeSettings ? getMockSettings() : {}
-        };
-        
-        let content, filename, mimeType;
-        
-        switch(format) {
-            case 'json':
-                content = JSON.stringify(exportData, null, 2);
-                filename = `pantry-data-${new Date().toISOString().split('T')[0]}.json`;
-                mimeType = 'application/json';
-                break;
-                
-            case 'csv':
-                content = convertToCSV(exportData);
-                filename = `pantry-data-${new Date().toISOString().split('T')[0]}.csv`;
-                mimeType = 'text/csv';
-                break;
-                
-            case 'txt':
-                content = convertToText(exportData);
-                filename = `pantry-data-${new Date().toISOString().split('T')[0]}.txt`;
-                mimeType = 'text/plain';
-                break;
-                
-            default:
-                content = JSON.stringify(exportData, null, 2);
-                filename = `pantry-data-${new Date().toISOString().split('T')[0]}.json`;
-                mimeType = 'application/json';
-        }
-        
-        // Create and download file
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        // Close modal and show success message
-        closeModalFunc(exportDataModal);
-        showSuccessMessage('Data exported successfully');
+        try {
+            // Get real data based on selected options
+            const exportData = {};
+            
+            if (includeItems) {
+                try {
+                    const itemsResult = await apiCall('/items');
+                    exportData.items = itemsResult.data || [];
+                } catch (error) {
+                    console.error('Error fetching items:', error);
+                    exportData.items = [];
+                }
+            }
+            
+            if (includeCategories) {
+                try {
+                    const categoriesResult = await apiCall('/categories');
+                    exportData.categories = categoriesResult.data || [];
+                } catch (error) {
+                    console.error('Error fetching categories:', error);
+                    exportData.categories = [];
+                }
+            }
+            
+            if (includeShoppingLists) {
+                try {
+                    const shoppingResult = await apiCall('/shopping-list');
+                    exportData.shoppingLists = shoppingResult.data || [];
+                } catch (error) {
+                    console.error('Error fetching shopping lists:', error);
+                    exportData.shoppingLists = [];
+                }
+            }
+            
+            if (includeSettings) {
+                const savedSettings = localStorage.getItem('pantrySettings');
+                exportData.settings = savedSettings ? JSON.parse(savedSettings) : {};
+            }
+            
+            let content, filename, mimeType;
+            
+            switch(format) {
+                case 'json':
+                    content = JSON.stringify(exportData, null, 2);
+                    filename = `pantry-data-${new Date().toISOString().split('T')[0]}.json`;
+                    mimeType = 'application/json';
+                    break;
+                    
+                case 'csv':
+                    content = convertToCSV(exportData);
+                    filename = `pantry-data-${new Date().toISOString().split('T')[0]}.csv`;
+                    mimeType = 'text/csv';
+                    break;
+                    
+                case 'txt':
+                    content = convertToText(exportData);
+                    filename = `pantry-data-${new Date().toISOString().split('T')[0]}.txt`;
+                    mimeType = 'text/plain';
+                    break;
+                    
+                default:
+                    content = JSON.stringify(exportData, null, 2);
+                    filename = `pantry-data-${new Date().toISOString().split('T')[0]}.json`;
+                    mimeType = 'application/json';
+            }
+            
+            // Create and download file
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Close modal and show success message
+            closeModalFunc(exportDataModal);
+            showSuccessMessage('Data exported successfully');
 
-        if (window.navbarManager) {
-            window.navbarManager.addNotification({
-                type: 'system',
-                title: 'Data Exported',
-                message: 'Your pantry data was exported successfully.',
-                actions: ['View Exported Data']
-            });
+            if (window.navbarManager) {
+                window.navbarManager.addNotification({
+                    type: 'system',
+                    title: 'Data Exported',
+                    message: 'Your pantry data was exported successfully.',
+                    actions: ['View Exported Data']
+                });
+            }
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            alert('Failed to export data. Please try again.');
         }
     });
 
@@ -385,9 +592,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Export items
         if (data.items && data.items.length > 0) {
             csvContent += 'PANTRY ITEMS\n';
-            csvContent += 'Name,Quantity,Unit,Expiry Date,Category\n';
+            csvContent += 'Name,Quantity,Category,Expiry Date\n';
             data.items.forEach(item => {
-                csvContent += `"${item.name}",${item.quantity},"${item.unit}","${item.expiry}","${item.category}"\n`;
+                csvContent += `"${item.name}",${item.quantity},"${item.category}","${item.expiry_date || 'No expiry'}"\n`;
             });
             csvContent += '\n';
         }
@@ -405,11 +612,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Export shopping lists
         if (data.shoppingLists && data.shoppingLists.length > 0) {
             csvContent += 'SHOPPING LISTS\n';
-            csvContent += 'List Name,Items,Completed\n';
-            data.shoppingLists.forEach(list => {
-                const items = list.items.join('; ');
-                const completed = list.completed ? 'Yes' : 'No';
-                csvContent += `"${list.name}","${items}","${completed}"\n`;
+            csvContent += 'Name,Quantity,Status\n';
+            data.shoppingLists.forEach(item => {
+                const status = item.status === 'bought' ? 'Purchased' : 'To Buy';
+                csvContent += `"${item.name}",${item.quantity},"${status}"\n`;
             });
             csvContent += '\n';
         }
@@ -441,8 +647,8 @@ document.addEventListener('DOMContentLoaded', () => {
             textContent += '-------------\n';
             data.items.forEach((item, index) => {
                 textContent += `${index + 1}. ${item.name}\n`;
-                textContent += `   Quantity: ${item.quantity} ${item.unit}\n`;
-                textContent += `   Expiry: ${item.expiry}\n`;
+                textContent += `   Quantity: ${item.quantity} ${item.unit || ''}\n`;
+                textContent += `   Expiry: ${item.expiry_date || 'No expiry'}\n`;
                 textContent += `   Category: ${item.category}\n\n`;
             });
         }
@@ -461,10 +667,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.shoppingLists && data.shoppingLists.length > 0) {
             textContent += 'SHOPPING LISTS:\n';
             textContent += '---------------\n';
-            data.shoppingLists.forEach((list, index) => {
-                textContent += `${index + 1}. ${list.name}\n`;
-                textContent += `   Items: ${list.items.join(', ')}\n`;
-                textContent += `   Status: ${list.completed ? 'Completed' : 'Pending'}\n\n`;
+            data.shoppingLists.forEach((item, index) => {
+                textContent += `${index + 1}. ${item.name}\n`;
+                textContent += `   Quantity: ${item.quantity}\n`;
+                textContent += `   Status: ${item.status === 'bought' ? 'Purchased' : 'To Buy'}\n\n`;
             });
         }
         
@@ -487,7 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Import data functionality
-    startImport.addEventListener('click', () => {
+    startImport.addEventListener('click', async () => {
         const file = importFile.files[0];
         if (!file) {
             alert('Please select a file to import.');
@@ -500,31 +706,59 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                console.log('Importing data:', data);
-                
-                // Simulate data import
-                showSuccessMessage('Data imported successfully');
-                closeModalFunc(importDataModal);
-                importFile.value = '';
-                startImport.disabled = true;
-
-                if (window.navbarManager) {
-                    window.navbarManager.addNotification({
-                        type: 'system',
-                        title: 'Data Imported',
-                        message: 'Your pantry data was imported successfully.',
-                        actions: ['View Imported Data']
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    console.log('Importing data:', data);
+                    
+                    // Import data via API
+                    const importOptions = {
+                        overwrite: document.getElementById('importOverwrite').checked,
+                        importSettings: document.getElementById('importSettings').checked
+                    };
+                    
+                    const result = await apiCall('/import', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            data,
+                            options: importOptions
+                        })
                     });
+                    
+                    if (result.message === 'success') {
+                        showSuccessMessage('Data imported successfully');
+                        closeModalFunc(importDataModal);
+                        importFile.value = '';
+                        startImport.disabled = true;
+
+                        if (window.navbarManager) {
+                            window.navbarManager.addNotification({
+                                type: 'system',
+                                title: 'Data Imported',
+                                message: 'Your pantry data was imported successfully.',
+                                actions: ['View Imported Data']
+                            });
+                        }
+                        
+                        // Reload page to reflect imported data
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        throw new Error(result.error || 'Failed to import data');
+                    }
+                } catch (error) {
+                    console.error('Error parsing import file:', error);
+                    alert('Invalid file format. Please select a valid JSON file.');
                 }
-            } catch (error) {
-                alert('Invalid file format. Please select a valid JSON file.');
-            }
-        };
-        reader.readAsText(file);
+            };
+            reader.readAsText(file);
+        } catch (error) {
+            console.error('Error importing data:', error);
+            alert('Failed to import data. Please try again.');
+        }
     });
 
     // Clear data confirmation logic
@@ -533,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Clear all data functionality
-    confirmClear.addEventListener('click', () => {
+    confirmClear.addEventListener('click', async () => {
         const confirmText = clearConfirmText.value;
         
         if (confirmText !== 'CLEAR') {
@@ -541,73 +775,134 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Simulate clearing all data
-        console.log('All data cleared');
-        
-        // Clear localStorage
-        localStorage.clear();
-        
-        // Show success message
-        showSuccessMessage('All data cleared successfully');
-        
-        // Close modal
-        closeModalFunc(clearDataModal);
-        
-        // Clear form
-        clearConfirmText.value = '';
-        confirmClear.disabled = true;
-        
-        // Reload settings
-        setTimeout(() => {
-            location.reload();
-        }, 2000);
+        try {
+            // Clear all data via API
+            const result = await apiCall('/clear-all-data', {
+                method: 'DELETE'
+            });
+            
+            if (result.message === 'success') {
+                // Clear localStorage
+                localStorage.clear();
+                
+                // Show success message
+                showSuccessMessage('All data cleared successfully');
+                
+                // Close modal
+                closeModalFunc(clearDataModal);
+                
+                // Clear form
+                clearConfirmText.value = '';
+                confirmClear.disabled = true;
+                
+                // Add notification
+                if (window.navbarManager) {
+                    window.navbarManager.addNotification({
+                        type: 'system',
+                        title: 'Data Cleared',
+                        message: 'All your pantry data has been cleared successfully.',
+                        actions: ['Start Fresh']
+                    });
+                }
+                
+                // Reload settings
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                throw new Error(result.error || 'Failed to clear data');
+            }
+        } catch (error) {
+            console.error('Error clearing data:', error);
+            alert('Failed to clear data. Please try again.');
+        }
     });
-
-    // Mock data functions for export
-    function getMockPantryItems() {
-        return [
-            { name: 'Rice', quantity: 2, unit: 'kg', expiry: '2024-12-31', category: 'Grains' },
-            { name: 'Pasta', quantity: 3, unit: 'packets', expiry: '2024-11-30', category: 'Grains' },
-            { name: 'Tomatoes', quantity: 1, unit: 'kg', expiry: '2024-10-15', category: 'Vegetables' }
-        ];
-    }
-
-    function getMockCategories() {
-        return ['Grains', 'Vegetables', 'Fruits', 'Dairy', 'Meat', 'Spices'];
-    }
-
-    function getMockShoppingLists() {
-        return [
-            { name: 'Weekly Groceries', items: ['Milk', 'Bread', 'Eggs'], completed: false },
-            { name: 'Party Supplies', items: ['Chips', 'Soda', 'Cake'], completed: true }
-        ];
-    }
-
-    function getMockSettings() {
-        return {
-            expiryReminders: true,
-            shoppingReminders: true,
-            emailNotifications: false,
-            autoCategorization: true,
-            expiryWarningDays: 2
-        };
-    }
 
     // Toggle switches functionality
     const toggleSwitches = document.querySelectorAll('.toggle-switch input');
     toggleSwitches.forEach(toggle => {
-        toggle.addEventListener('change', () => {
+        toggle.addEventListener('change', async () => {
             const settingLabel = toggle.closest('.setting-item').querySelector('.setting-label').textContent;
-            // Settings change handled silently
+            
+            try {
+                // Save settings to API
+                const settings = {
+                    expiryReminders: document.querySelectorAll('input[type="checkbox"]')[0].checked,
+                    shoppingReminders: document.querySelectorAll('input[type="checkbox"]')[1].checked,
+                    emailNotifications: document.querySelectorAll('input[type="checkbox"]')[2].checked,
+                    autoCategorization: document.querySelectorAll('input[type="checkbox"]')[3].checked,
+                    expiryWarningDays: document.querySelector('.setting-select').value
+                };
+                
+                const result = await apiCall('/settings', {
+                    method: 'PUT',
+                    body: JSON.stringify(settings)
+                });
+                
+                if (result.message === 'success') {
+                    // Save to localStorage as backup
+                    localStorage.setItem('pantrySettings', JSON.stringify(settings));
+                    
+                    if (window.navbarManager) {
+                        window.navbarManager.addNotification({
+                            type: 'system',
+                            title: 'Settings Changed',
+                            message: 'Your pantry settings were updated.',
+                            actions: ['View Settings']
+                        });
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to save settings');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                // Revert the toggle if save failed
+                toggle.checked = !toggle.checked;
+                alert('Failed to save settings. Please try again.');
+            }
         });
     });
 
     // Select dropdown functionality
     const selectDropdowns = document.querySelectorAll('.setting-select');
     selectDropdowns.forEach(select => {
-        select.addEventListener('change', () => {
+        select.addEventListener('change', async () => {
             const settingLabel = select.closest('.setting-item').querySelector('.setting-label').textContent;
-            // Settings change handled silently
+            
+            try {
+                // Save settings to API
+                const settings = {
+                    expiryReminders: document.querySelectorAll('input[type="checkbox"]')[0].checked,
+                    shoppingReminders: document.querySelectorAll('input[type="checkbox"]')[1].checked,
+                    emailNotifications: document.querySelectorAll('input[type="checkbox"]')[2].checked,
+                    autoCategorization: document.querySelectorAll('input[type="checkbox"]')[3].checked,
+                    expiryWarningDays: select.value
+                };
+                
+                const result = await apiCall('/settings', {
+                    method: 'PUT',
+                    body: JSON.stringify(settings)
+                });
+                
+                if (result.message === 'success') {
+                    // Save to localStorage as backup
+                    localStorage.setItem('pantrySettings', JSON.stringify(settings));
+                    
+                    if (window.navbarManager) {
+                        window.navbarManager.addNotification({
+                            type: 'system',
+                            title: 'Settings Changed',
+                            message: 'Your pantry settings were updated.',
+                            actions: ['View Settings']
+                        });
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to save settings');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Failed to save settings. Please try again.');
+            }
         });
     });
 
@@ -665,43 +960,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Simulate some settings being saved to localStorage
-    const saveSettings = () => {
-        const settings = {
-            expiryReminders: document.querySelector('input[type="checkbox"]').checked,
-            shoppingReminders: document.querySelectorAll('input[type="checkbox"]')[1].checked,
-            emailNotifications: document.querySelectorAll('input[type="checkbox"]')[2].checked,
-            autoCategorization: document.querySelectorAll('input[type="checkbox"]')[3].checked,
-            expiryWarningDays: document.querySelector('.setting-select').value
-        };
-        localStorage.setItem('pantrySettings', JSON.stringify(settings));
-
-        if (window.navbarManager) {
-            window.navbarManager.addNotification({
-                type: 'system',
-                title: 'Settings Changed',
-                message: 'Your pantry settings were updated.',
-                actions: ['View Settings']
-            });
+    // Load settings from API and localStorage
+    const loadSettings = async () => {
+        try {
+            // Try to load settings from API first
+            const result = await apiCall('/settings');
+            if (result.message === 'success' && result.data) {
+                const settings = result.data;
+                applySettingsToUI(settings);
+                localStorage.setItem('pantrySettings', JSON.stringify(settings));
+            } else {
+                // Fallback to localStorage
+                const savedSettings = localStorage.getItem('pantrySettings');
+                if (savedSettings) {
+                    const settings = JSON.parse(savedSettings);
+                    applySettingsToUI(settings);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading settings from API:', error);
+            // Fallback to localStorage
+            const savedSettings = localStorage.getItem('pantrySettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                applySettingsToUI(settings);
+            }
         }
     };
 
-    // Load settings from localStorage
-    const loadSettings = () => {
-        const savedSettings = localStorage.getItem('pantrySettings');
-        if (savedSettings) {
-            const settings = JSON.parse(savedSettings);
-            // Apply saved settings to the UI
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            if (checkboxes[0]) checkboxes[0].checked = settings.expiryReminders;
-            if (checkboxes[1]) checkboxes[1].checked = settings.shoppingReminders;
-            if (checkboxes[2]) checkboxes[2].checked = settings.emailNotifications;
-            if (checkboxes[3]) checkboxes[3].checked = settings.autoCategorization;
-            
-            const select = document.querySelector('.setting-select');
-            if (select && settings.expiryWarningDays) {
-                select.value = settings.expiryWarningDays;
-            }
+    // Apply settings to UI
+    const applySettingsToUI = (settings) => {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        if (checkboxes[0]) checkboxes[0].checked = settings.expiryReminders || false;
+        if (checkboxes[1]) checkboxes[1].checked = settings.shoppingReminders || false;
+        if (checkboxes[2]) checkboxes[2].checked = settings.emailNotifications || false;
+        if (checkboxes[3]) checkboxes[3].checked = settings.autoCategorization || false;
+        
+        const select = document.querySelector('.setting-select');
+        if (select && settings.expiryWarningDays) {
+            select.value = settings.expiryWarningDays;
         }
     };
 
@@ -729,6 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize settings and password toggles
     loadSettings();
+    loadUserProfile();
     setupPasswordToggles();
 
     // Logout functionality
@@ -747,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('pantryItems');
             localStorage.removeItem('shoppingList');
             localStorage.removeItem('settings');
-            
+            localStorage.removeItem('userAvatar');
             // Redirect to index page
             window.location.href = '/index.html';
         } catch (error) {

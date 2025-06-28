@@ -22,7 +22,9 @@
     <div class="nav-actions">
       <button class="add-btn">+ Add Item</button>
       <a href="/settings.html" class="avatar-link">
-        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="avatar"/>
+        <div class="avatar-placeholder" id="userAvatar">
+          <i class="fa fa-user"></i>
+        </div>
       </a>
     </div>
   </nav>
@@ -43,6 +45,9 @@
           <option value="Expiring">Expiring</option>
           <option value="Expired">Expired</option>
         </select>
+        <button class="clear-all-btn" id="clearAllBtn">
+          <i class="fa fa-trash"></i> Clear All Items
+        </button>
       </div>
       <div class="summary-cards">
         <div class="summary-card">
@@ -63,7 +68,7 @@
         <div class="summary-card">
           <div class="summary-title">Expired</div>
           <div class="summary-value red">0</div>
-          <div class="summary-icon bg-red"><i class="fa fa-exclamation"></i></div>
+          <div class="summary-icon bg-red" id="expiredIcon"><i class="fa fa-exclamation"></i></div>
         </div>
       </div>
       <div class="pantry-grid" id="pantryGrid">

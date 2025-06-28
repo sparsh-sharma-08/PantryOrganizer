@@ -88,6 +88,26 @@ body {
     border-color: #4361ee;
 }
 
+.avatar-placeholder {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #eaf1ff;
+    border: 2px solid #eaf1ff;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4361ee;
+    font-size: 1.2rem;
+}
+
+.avatar-placeholder:hover {
+    border-color: #4361ee;
+    background-color: #d4e3ff;
+}
+
 .notif-dot { 
     background: #e74c3c; 
     color: #fff; 
@@ -175,6 +195,25 @@ body {
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #eaf1ff;
+}
+
+.profile-avatar-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #eaf1ff;
+    border: 3px solid #eaf1ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4361ee;
+    font-size: 1.8rem;
+    transition: border-color 0.2s ease;
+}
+
+.profile-avatar-placeholder:hover {
+    border-color: #4361ee;
+    background-color: #d4e3ff;
 }
 
 .profile-details h3 {
