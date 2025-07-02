@@ -145,13 +145,6 @@
             </div>
             <div class="setting-item">
               <div class="setting-info">
-                <span class="setting-label">Import Data</span>
-                <span class="setting-desc">Import pantry data from file</span>
-              </div>
-              <button class="action-btn">Import</button>
-            </div>
-            <div class="setting-item">
-              <div class="setting-info">
                 <span class="setting-label">Clear All Data</span>
                 <span class="setting-desc">Permanently delete all data</span>
               </div>
@@ -233,11 +226,6 @@
           <div class="form-group">
             <label for="editName">Full Name</label>
             <input type="text" id="editName" placeholder="Enter your full name" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="editEmail">Email Address</label>
-            <input type="email" id="editEmail" placeholder="Enter your email address" required>
           </div>
           
           <div class="form-actions">
@@ -392,50 +380,6 @@
         <div class="form-actions">
           <button type="button" class="btn-secondary" id="cancelExport">Cancel</button>
           <button type="button" class="btn-primary" id="startExport">Export Data</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Import Data Modal -->
-  <div id="importDataModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2><i class="fa fa-upload"></i> Import Data</h2>
-        <button class="modal-close" id="closeImportModal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="warning-message">
-          <i class="fa fa-exclamation-triangle"></i>
-          <h3>Import Data Warning</h3>
-          <p>Importing data will overwrite existing items with the same names. Make sure to backup your current data first.</p>
-        </div>
-        
-        <div class="form-group">
-          <label for="importFile">Select File</label>
-          <input type="file" id="importFile" accept=".json,.csv,.txt" class="file-input">
-          <small class="form-help">Supported formats: JSON, CSV, TXT (max 10MB)</small>
-        </div>
-        
-        <div class="import-options">
-          <div class="form-group">
-            <label>Import Options</label>
-            <div class="checkbox-group">
-              <label class="checkbox-item">
-                <input type="checkbox" id="importOverwrite" checked>
-                <span>Overwrite existing items</span>
-              </label>
-              <label class="checkbox-item">
-                <input type="checkbox" id="importSettings">
-                <span>Import settings</span>
-              </label>
-            </div>
-          </div>
-        </div>
-        
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" id="cancelImport">Cancel</button>
-          <button type="button" class="btn-primary" id="startImport" disabled>Import Data</button>
         </div>
       </div>
     </div>

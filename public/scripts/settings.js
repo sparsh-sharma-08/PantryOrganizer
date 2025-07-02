@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('pendingClearNotifications');
         
         // Show confirmation message
-        showSuccessMessage('All notifications have been cleared successfully!');
+        showNotification('All notifications have been cleared successfully!', 'success');
         
         // Clean up URL
         const newUrl = window.location.pathname;
@@ -57,13 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelExport = document.getElementById('cancelExport');
     const startExport = document.getElementById('startExport');
     
-    // Import modal elements
-    const importDataModal = document.getElementById('importDataModal');
-    const closeImportModal = document.getElementById('closeImportModal');
-    const cancelImport = document.getElementById('cancelImport');
-    const importFile = document.getElementById('importFile');
-    const startImport = document.getElementById('startImport');
-    
     // Clear data modal elements
     const clearDataModal = document.getElementById('clearDataModal');
     const closeClearModal = document.getElementById('closeClearModal');
@@ -75,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const profilePhotoInput = document.getElementById('profilePhotoInput');
     const profilePhotoPreview = document.getElementById('profilePhotoPreview');
     const editName = document.getElementById('editName');
-    const editEmail = document.getElementById('editEmail');
     
     // Display elements
     const currentProfilePic = document.getElementById('currentProfilePic');
@@ -164,8 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function populateEditForm() {
         if (window.currentUserData) {
             editName.value = window.currentUserData.name || '';
-            editEmail.value = window.currentUserData.email || '';
-            
             // Populate profile photo preview
             if (window.currentUserData.profile_photo) {
                 profilePhotoPreview.innerHTML = `<img src="${window.currentUserData.profile_photo}" alt="Profile Preview" class="avatar"/>`;
@@ -216,16 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
     closeExportModal.addEventListener('click', () => closeModalFunc(exportDataModal));
     cancelExport.addEventListener('click', () => closeModalFunc(exportDataModal));
 
-    // Event listeners for import modal
-    closeImportModal.addEventListener('click', () => closeModalFunc(importDataModal));
-    cancelImport.addEventListener('click', () => closeModalFunc(importDataModal));
-
     // Event listeners for clear data modal
     closeClearModal.addEventListener('click', () => closeModalFunc(clearDataModal));
     cancelClear.addEventListener('click', () => closeModalFunc(clearDataModal));
 
     // Close modals when clicking outside
-    [editProfileModal, changePasswordModal, deleteAccountModal, exportDataModal, importDataModal, clearDataModal].forEach(modal => {
+    [editProfileModal, changePasswordModal, deleteAccountModal, exportDataModal, clearDataModal].forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 closeModalFunc(modal);
@@ -244,8 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeModalFunc(deleteAccountModal);
             } else if (exportDataModal.classList.contains('show')) {
                 closeModalFunc(exportDataModal);
-            } else if (importDataModal.classList.contains('show')) {
-                closeModalFunc(importDataModal);
             } else if (clearDataModal.classList.contains('show')) {
                 closeModalFunc(clearDataModal);
             }
@@ -258,12 +242,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file) {
             // Validate file type
             if (!file.type.startsWith('image/')) {
-                alert('Please select an image file.');
+                showNotification('Please select an image file.', 'error');
                 return;
             }
             // Validate file size (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
-                alert('Image size should be less than 5MB.');
+                showNotification('Image size should be less than 5MB.', 'error');
                 return;
             }
             const reader = new FileReader();
@@ -286,60 +270,36 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         const newName = editName.value.trim();
-        const newEmail = editEmail.value.trim();
-        
         // Basic validation
-        if (!newName || !newEmail) {
-            alert('Please fill in all fields.');
+        if (!newName) {
+            showNotification('Please fill in all fields.', 'error');
             return;
         }
-        
         if (newName.length < 2) {
-            alert('Name must be at least 2 characters long.');
+            showNotification('Name must be at least 2 characters long.', 'error');
             return;
         }
-        
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(newEmail)) {
-            alert('Please enter a valid email address.');
-            return;
-        }
-
         try {
-            // Update profile via API
+            // Always include the current avatar value
             const updateData = {
                 name: newName,
-                email: newEmail
+                profile_photo: localStorage.getItem('userAvatar') || null
             };
-            
-            // Include profile photo if it was uploaded
-            const storedAvatar = localStorage.getItem('userAvatar');
-            if (storedAvatar && storedAvatar !== profilePhotoPreview.src) {
-                updateData.profile_photo = storedAvatar;
-            }
-            
             const result = await apiCall('/auth/profile', {
                 method: 'PUT',
                 body: JSON.stringify(updateData)
             });
-            
             if (result.message === 'Profile updated successfully') {
                 // Update the display
                 currentName.textContent = newName;
-                currentUsername.textContent = newEmail;
-                
                 // Force refresh avatar across all pages
                 if (window.navbarManager) {
                     window.navbarManager.forceRefreshAvatar();
                 }
-                
                 // Close modal
                 closeModalFunc(editProfileModal);
-                
                 // Show success message
                 showSuccessMessage('Profile updated successfully');
-                
                 // Add notification
                 if (window.navbarManager) {
                     window.navbarManager.addNotification({
@@ -354,55 +314,51 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error updating profile:', error);
-            alert('Failed to update profile. Please try again.');
+            showNotification('Failed to update profile. Please try again.', 'error');
         }
     });
 
     // Change password form submission
     changePasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const currentPassword = document.getElementById('currentPassword').value;
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        // Validation
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            alert('Please fill in all fields.');
+        // Password strength check
+        const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+        if (!passwordStrengthRegex.test(newPassword)) {
+            showNotification('Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.', 'error');
             return;
         }
-        
-        if (newPassword.length < 8) {
-            alert('New password must be at least 8 characters long.');
-            return;
-        }
-        
         if (newPassword !== confirmPassword) {
-            alert('New passwords do not match.');
+            showNotification('New passwords do not match.', 'error');
             return;
         }
-        
         try {
             // Change password via API
-            const result = await apiCall('/auth/change-password', {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/auth/change-password', {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     currentPassword,
                     newPassword
                 })
             });
-            
-            if (result.message === 'success') {
-                // Close modal
+            const result = await response.json();
+            if (response.status === 401) {
+                showNotification('Session expired. Please log in again.', 'error');
+                localStorage.clear();
+                window.location.href = '/login.html';
+                return;
+            }
+            if (response.ok && result.message === 'success') {
                 closeModalFunc(changePasswordModal);
-                
-                // Show success message
                 showSuccessMessage('Password changed successfully');
-                
-                // Clear form
                 changePasswordForm.reset();
-                
-                // Add notification
                 if (window.navbarManager) {
                     window.navbarManager.addNotification({
                         type: 'system',
@@ -412,11 +368,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             } else {
-                throw new Error(result.error || 'Failed to change password');
+                showNotification(result.error || 'Failed to change password. Please check your current password and try again.', 'error');
             }
         } catch (error) {
             console.error('Error changing password:', error);
-            alert('Failed to change password. Please check your current password and try again.');
+            showNotification('Failed to change password. Please check your current password and try again.', 'error');
         }
     });
 
@@ -433,12 +389,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('deletePassword').value;
         
         if (confirmText !== 'DELETE') {
-            alert('Please type "DELETE" to confirm.');
+            showNotification('Please type "DELETE" to confirm.', 'error');
             return;
         }
         
         if (!password) {
-            alert('Please enter your password.');
+            showNotification('Please enter your password.', 'error');
             return;
         }
         
@@ -466,8 +422,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.clear();
                 
                 // Redirect to login page
+                showNotification('Your account has been deleted. You will be redirected to the login page.', 'success');
                 setTimeout(() => {
-                    alert('Your account has been deleted. You will be redirected to the login page.');
                     window.location.href = '/login.html';
                 }, 2000);
             } else {
@@ -475,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error deleting account:', error);
-            alert('Failed to delete account. Please check your password and try again.');
+            showNotification('Failed to delete account. Please check your password and try again.', 'error');
         }
     });
 
@@ -578,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error exporting data:', error);
-            alert('Failed to export data. Please try again.');
+            showNotification('Failed to export data. Please try again.', 'error');
         }
     });
 
@@ -687,80 +643,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return textContent;
     }
 
-    // Import file selection
-    importFile.addEventListener('change', () => {
-        startImport.disabled = !importFile.files[0];
-    });
-
-    // Import data functionality
-    startImport.addEventListener('click', async () => {
-        const file = importFile.files[0];
-        if (!file) {
-            alert('Please select a file to import.');
-            return;
-        }
-        
-        // Validate file size
-        if (file.size > 10 * 1024 * 1024) {
-            alert('File size must be less than 10MB.');
-            return;
-        }
-        
-        try {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    console.log('Importing data:', data);
-                    
-                    // Import data via API
-                    const importOptions = {
-                        overwrite: document.getElementById('importOverwrite').checked,
-                        importSettings: document.getElementById('importSettings').checked
-                    };
-                    
-                    const result = await apiCall('/import', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            data,
-                            options: importOptions
-                        })
-                    });
-                    
-                    if (result.message === 'success') {
-                        showSuccessMessage('Data imported successfully');
-                        closeModalFunc(importDataModal);
-                        importFile.value = '';
-                        startImport.disabled = true;
-
-                        if (window.navbarManager) {
-                            window.navbarManager.addNotification({
-                                type: 'system',
-                                title: 'Data Imported',
-                                message: 'Your pantry data was imported successfully.',
-                                actions: ['View Imported Data']
-                            });
-                        }
-                        
-                        // Reload page to reflect imported data
-                        setTimeout(() => {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        throw new Error(result.error || 'Failed to import data');
-                    }
-                } catch (error) {
-                    console.error('Error parsing import file:', error);
-                    alert('Invalid file format. Please select a valid JSON file.');
-                }
-            };
-            reader.readAsText(file);
-        } catch (error) {
-            console.error('Error importing data:', error);
-            alert('Failed to import data. Please try again.');
-        }
-    });
-
     // Clear data confirmation logic
     clearConfirmText.addEventListener('input', () => {
         confirmClear.disabled = clearConfirmText.value !== 'CLEAR';
@@ -771,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmText = clearConfirmText.value;
         
         if (confirmText !== 'CLEAR') {
-            alert('Please type "CLEAR" to confirm.');
+            showNotification('Please type "CLEAR" to confirm.', 'error');
             return;
         }
         
@@ -814,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error clearing data:', error);
-            alert('Failed to clear data. Please try again.');
+            showNotification('Failed to clear data. Please try again.', 'error');
         }
     });
 
@@ -858,7 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error saving settings:', error);
                 // Revert the toggle if save failed
                 toggle.checked = !toggle.checked;
-                alert('Failed to save settings. Please try again.');
+                showNotification('Failed to save settings. Please try again.', 'error');
             }
         });
     });
@@ -901,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error('Error saving settings:', error);
-                alert('Failed to save settings. Please try again.');
+                showNotification('Failed to save settings. Please try again.', 'error');
             }
         });
     });
@@ -916,9 +798,6 @@ document.addEventListener('DOMContentLoaded', () => {
             switch(action) {
                 case 'Export':
                     openModal(exportDataModal);
-                    break;
-                case 'Import':
-                    openModal(importDataModal);
                     break;
                 case 'Clear':
                     openModal(clearDataModal);
@@ -1052,5 +931,43 @@ document.addEventListener('DOMContentLoaded', () => {
             // Fallback redirect
             window.location.href = '/index.html';
         }
+    }
+
+    // Notification utility
+    function showNotification(message, type = 'info') {
+        let notif = document.getElementById('customNotificationBox');
+        if (!notif) {
+            notif = document.createElement('div');
+            notif.id = 'customNotificationBox';
+            notif.style.position = 'fixed';
+            notif.style.top = '24px';
+            notif.style.right = '24px';
+            notif.style.zIndex = '9999';
+            notif.style.minWidth = '220px';
+            notif.style.padding = '1em 1.5em';
+            notif.style.borderRadius = '6px';
+            notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+            notif.style.fontSize = '1em';
+            notif.style.display = 'none';
+            notif.style.background = '#3498db';
+            notif.style.color = '#fff';
+            notif.style.transition = 'opacity 0.3s, transform 0.3s';
+            notif.style.opacity = '0';
+            notif.innerHTML = '<span id="notifMsg"></span><button id="notifClose" style="background:none;border:none;color:#fff;font-size:1.2em;position:absolute;top:8px;right:12px;cursor:pointer;">&times;</button>';
+            document.body.appendChild(notif);
+            notif.querySelector('#notifClose').onclick = () => {
+                notif.style.opacity = '0';
+                setTimeout(() => { notif.style.display = 'none'; }, 300);
+            };
+        }
+        notif.querySelector('#notifMsg').textContent = message;
+        notif.style.background = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#3498db');
+        notif.style.display = 'block';
+        notif.style.opacity = '1';
+        notif.style.transform = 'translateY(0)';
+        setTimeout(() => {
+            notif.style.opacity = '0';
+            setTimeout(() => { notif.style.display = 'none'; }, 300);
+        }, 4000);
     }
 }); 

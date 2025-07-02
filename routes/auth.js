@@ -119,30 +119,55 @@ router.get('/profile', requireAuth, (req, res) => {
 // --- Update Profile ---
 router.put('/profile', requireAuth, (req, res) => {
   const { name, email, profile_photo } = req.body;
-  if (!name || !email) return res.status(400).json({ error: 'Name and email required' });
+  if (!name) return res.status(400).json({ error: 'Name required' });
 
-  // Check if email is already taken by another user
-  db.get('SELECT id FROM users WHERE email = ? AND id != ?', [email, req.user.id], (err, existingUser) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (existingUser) return res.status(400).json({ error: 'Email already in use' });
+  // If email is provided, check if it's already taken by another user
+  if (email) {
+    db.get('SELECT id FROM users WHERE email = ? AND id != ?', [email, req.user.id], (err, existingUser) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (existingUser) return res.status(400).json({ error: 'Email already in use' });
 
-    // Build update query based on what's provided
-    let updateQuery = 'UPDATE users SET name = ?, email = ?';
-    let params = [name, email];
-    
+      // Build update query based on what's provided
+      let updateQuery = 'UPDATE users SET name = ?';
+      let params = [name];
+      if (email) {
+        updateQuery += ', email = ?';
+        params.push(email);
+      }
+      if (profile_photo !== undefined) {
+        updateQuery += ', profile_photo = ?';
+        params.push(profile_photo);
+      }
+      updateQuery += ' WHERE id = ?';
+      params.push(req.user.id);
+
+      db.run(updateQuery, params, function(err) {
+        if (err) {
+          console.error('Profile update error:', err);
+          return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Profile updated successfully' });
+      });
+    });
+  } else {
+    // No email update, just update name and/or profile_photo
+    let updateQuery = 'UPDATE users SET name = ?';
+    let params = [name];
     if (profile_photo !== undefined) {
       updateQuery += ', profile_photo = ?';
       params.push(profile_photo);
     }
-    
     updateQuery += ' WHERE id = ?';
     params.push(req.user.id);
 
     db.run(updateQuery, params, function(err) {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) {
+        console.error('Profile update error:', err);
+        return res.status(500).json({ error: err.message });
+      }
       res.json({ message: 'Profile updated successfully' });
     });
-  });
+  }
 });
 
 // Send OTP to email
@@ -196,4 +221,63 @@ router.post('/reset-password', async (req, res) => {
   });
 });
 
+// --- Change Password ---
+router.post('/change-password', requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Current and new password required' });
+  }
+  // Password strength check
+  const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+  if (!passwordStrengthRegex.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.' });
+  }
+  db.get('SELECT password_hash, email FROM users WHERE id = ?', [req.user.id], async (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const ok = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!ok) return res.status(400).json({ error: 'Current password is incorrect' });
+    const hash = await bcrypt.hash(newPassword, 10);
+    db.run('UPDATE users SET password_hash = ? WHERE id = ?', [hash, req.user.id], async function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      // Send email notification
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: 'Your Smart Pantry password was changed',
+          text: 'Hello,\n\nYour password was recently changed. If you did not perform this action, please reset your password immediately or contact support.\n\n- Smart Pantry Team'
+        });
+      } catch (mailErr) {
+        // Log but don't fail the request if email fails
+        console.error('Failed to send password change email:', mailErr);
+      }
+      res.json({ message: 'success' });
+    });
+  });
+});
+
+// --- Delete Account ---
+router.delete('/delete-account', requireAuth, async (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ error: 'Password required' });
+  db.get('SELECT password_hash FROM users WHERE id = ?', [req.user.id], async (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) return res.status(400).json({ error: 'Incorrect password' });
+    // Delete user data from all related tables
+    db.serialize(() => {
+      db.run('DELETE FROM pantry_items WHERE user_id = ?', [req.user.id]);
+      db.run('DELETE FROM shopping_list WHERE user_id = ?', [req.user.id]);
+      db.run('DELETE FROM user_settings WHERE user_id = ?', [req.user.id]);
+      db.run('DELETE FROM users WHERE id = ?', [req.user.id], function(err2) {
+        if (err2) return res.status(500).json({ error: err2.message });
+        res.json({ message: 'success' });
+      });
+    });
+  });
+});
+
 module.exports = router;
+module.exports.transporter = transporter;

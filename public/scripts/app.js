@@ -7,7 +7,7 @@ if (window.location.pathname.endsWith('signup.html')) {
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
         if (password !== confirmPassword) {
-            alert('Passwords do not match');
+            showNotification('Passwords do not match', 'error');
             return;
         }
         const res = await fetch('/api/auth/register', {
@@ -42,14 +42,14 @@ if (window.location.pathname.endsWith('signup.html')) {
                             actions: ['Go to Dashboard']
                         });
                     }
-                    alert('Account verified! You can now log in.');
+                    showNotification('Account verified! You can now log in.', 'success');
                     window.location.href = '/login.html';
                 } else {
-                    alert(verifyData.error || 'Verification failed');
+                    showNotification(verifyData.error || 'Verification failed', 'error');
                 }
             };
         } else {
-            alert(data.error || 'Signup failed');
+            showNotification(data.error || 'Signup failed', 'error');
         }
     });
     // Social login buttons
@@ -97,7 +97,7 @@ if (window.location.pathname.endsWith('login.html')) {
             
             window.location.href = '/dashboard.html';
         } else {
-            alert(data.error || 'Login failed');
+            showNotification(data.error || 'Login failed', 'error');
         }
     });
     // Social login buttons
@@ -108,3 +108,96 @@ if (window.location.pathname.endsWith('login.html')) {
         window.location.href = '/api/auth/github';
     });
 }
+
+function showNotification(message, type = 'info') {
+    let notif = document.getElementById('customNotificationBox');
+    if (!notif) {
+        notif = document.createElement('div');
+        notif.id = 'customNotificationBox';
+        notif.style.position = 'fixed';
+        notif.style.top = '24px';
+        notif.style.right = '24px';
+        notif.style.zIndex = '9999';
+        notif.style.minWidth = '220px';
+        notif.style.padding = '1em 1.5em';
+        notif.style.borderRadius = '6px';
+        notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        notif.style.fontSize = '1em';
+        notif.style.display = 'none';
+        notif.style.background = '#3498db';
+        notif.style.color = '#fff';
+        notif.style.transition = 'opacity 0.3s, transform 0.3s';
+        notif.style.opacity = '0';
+        notif.innerHTML = '<span id="notifMsg"></span><button id="notifClose" style="background:none;border:none;color:#fff;font-size:1.2em;position:absolute;top:8px;right:12px;cursor:pointer;">&times;</button>';
+        document.body.appendChild(notif);
+        notif.querySelector('#notifClose').onclick = () => {
+            notif.style.opacity = '0';
+            setTimeout(() => { notif.style.display = 'none'; }, 300);
+        };
+    }
+    notif.querySelector('#notifMsg').textContent = message;
+    notif.style.background = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#3498db');
+    notif.style.display = 'block';
+    notif.style.opacity = '1';
+    notif.style.transform = 'translateY(0)';
+    setTimeout(() => {
+        notif.style.opacity = '0';
+        setTimeout(() => { notif.style.display = 'none'; }, 300);
+    }, 4000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Contact form logic
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('contactName').value.trim();
+            const email = document.getElementById('contactEmail').value.trim();
+            const message = document.getElementById('contactMessage').value.trim();
+            const statusDiv = document.getElementById('contactFormStatus');
+            statusDiv.style.display = 'none';
+            statusDiv.classList.remove('error');
+
+            if (!name || !email || !message) {
+                showNotification('Please fill in all fields.', 'error');
+                statusDiv.textContent = 'Please fill in all fields.';
+                statusDiv.classList.add('error');
+                statusDiv.style.display = 'block';
+                return;
+            }
+            // Basic email validation
+            if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+                showNotification('Please enter a valid email address.', 'error');
+                statusDiv.textContent = 'Please enter a valid email address.';
+                statusDiv.classList.add('error');
+                statusDiv.style.display = 'block';
+                return;
+            }
+            statusDiv.textContent = 'Sending...';
+            statusDiv.style.display = 'block';
+            try {
+                const res = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, message })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showNotification('Message sent! We will get back to you soon.', 'success');
+                    statusDiv.textContent = 'Message sent! We will get back to you soon.';
+                    contactForm.reset();
+                } else {
+                    showNotification(data.error || 'Failed to send message.', 'error');
+                    statusDiv.textContent = data.error || 'Failed to send message.';
+                    statusDiv.classList.add('error');
+                }
+            } catch (err) {
+                showNotification('Failed to send message. Please try again.', 'error');
+                statusDiv.textContent = 'Failed to send message. Please try again.';
+                statusDiv.classList.add('error');
+            }
+            statusDiv.style.display = 'block';
+        });
+    }
+});

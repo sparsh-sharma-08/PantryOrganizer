@@ -284,11 +284,33 @@ function attachCardListeners() {
 async function handleAddItem(e) {
     e.preventDefault();
     
+    const settings = JSON.parse(localStorage.getItem('pantrySettings') || '{}');
+    let category = document.getElementById('itemCategory').value;
+    const name = document.getElementById('itemName').value.trim();
+    const quantity = document.getElementById('itemQty').value.trim();
+    const expiry_date = document.getElementById('itemExpiry').value;
+
+    // Auto-categorization logic
+    if (settings.autoCategorization) {
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes('milk') || nameLower.includes('cheese') || nameLower.includes('yogurt')) category = 'Dairy';
+        else if (nameLower.includes('bread') || nameLower.includes('bun') || nameLower.includes('roll')) category = 'Bakery';
+        else if (nameLower.includes('apple') || nameLower.includes('banana') || nameLower.includes('orange')) category = 'Fruits';
+        else if (nameLower.includes('carrot') || nameLower.includes('lettuce') || nameLower.includes('spinach')) category = 'Vegetables';
+        else if (nameLower.includes('chicken') || nameLower.includes('beef') || nameLower.includes('pork')) category = 'Meat';
+        else if (nameLower.includes('rice') || nameLower.includes('pasta') || nameLower.includes('bread')) category = 'Grains';
+        else if (nameLower.includes('chips') || nameLower.includes('cookie') || nameLower.includes('snack')) category = 'Snacks';
+        else if (nameLower.includes('juice') || nameLower.includes('soda') || nameLower.includes('water')) category = 'Beverages';
+        else if (nameLower.includes('ice cream') || nameLower.includes('frozen')) category = 'Frozen';
+        else if (nameLower.includes('ketchup') || nameLower.includes('mustard') || nameLower.includes('sauce')) category = 'Condiments';
+        else category = 'Other';
+    }
+
     const formData = {
-        name: document.getElementById('itemName').value.trim(),
-        quantity: document.getElementById('itemQty').value.trim(),
-        category: document.getElementById('itemCategory').value,
-        expiry_date: document.getElementById('itemExpiry').value
+        name,
+        quantity,
+        category,
+        expiry_date
     };
     
     if (!formData.name || !formData.quantity || !formData.category || !formData.expiry_date) {
@@ -475,6 +497,8 @@ function updateSummaryCards() {
     let expired = 0;
     
     const today = new Date();
+    const settings = JSON.parse(localStorage.getItem('pantrySettings') || '{}');
+    const expiryWarningDays = parseInt(settings.expiryWarningDays) || 2;
     
     allItems.forEach(item => {
         const expDate = new Date(item.expiry_date);
@@ -483,7 +507,7 @@ function updateSummaryCards() {
         
         if (diffDays < 0) {
             expired++;
-        } else if (diffDays <= 2) {
+        } else if (diffDays <= expiryWarningDays) {
             expiringSoon++;
         } else {
             freshItems++;
@@ -511,19 +535,26 @@ function showNotification(message, type = 'info') {
         notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
         notif.style.fontSize = '1em';
         notif.style.display = 'none';
-        document.body.appendChild(notif);
-    }
-    notif.textContent = message;
-    if (type === 'error') {
-        notif.style.background = '#e74c3c';
-    } else if (type === 'success') {
-        notif.style.background = '#27ae60';
-    } else {
         notif.style.background = '#3498db';
+        notif.style.color = '#fff';
+        notif.style.transition = 'opacity 0.3s, transform 0.3s';
+        notif.style.opacity = '0';
+        notif.innerHTML = '<span id="notifMsg"></span><button id="notifClose" style="background:none;border:none;color:#fff;font-size:1.2em;position:absolute;top:8px;right:12px;cursor:pointer;">&times;</button>';
+        document.body.appendChild(notif);
+        notif.querySelector('#notifClose').onclick = () => {
+            notif.style.opacity = '0';
+            setTimeout(() => { notif.style.display = 'none'; }, 300);
+        };
     }
-    notif.style.color = '#fff';
+    notif.querySelector('#notifMsg').textContent = message;
+    notif.style.background = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#3498db');
     notif.style.display = 'block';
-    setTimeout(() => { notif.style.display = 'none'; }, 3500);
+    notif.style.opacity = '1';
+    notif.style.transform = 'translateY(0)';
+    setTimeout(() => {
+        notif.style.opacity = '0';
+        setTimeout(() => { notif.style.display = 'none'; }, 300);
+    }, 4000);
 }
 
 function showConfirm(message, onConfirm) {

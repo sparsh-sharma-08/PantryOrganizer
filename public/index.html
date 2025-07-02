@@ -14,9 +14,9 @@
     <h1 class="logo">Smart Pantry</h1>
 
     <div class="landingLinks" id="navLinks">
-      <a href="#features">Features</a>
-      <a href="#testimonials">Testimonials</a>
-      <a href="#contact">Contact</a>
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#testimonials" class="nav-link">Testimonials</a>
+      <a href="#contact" class="nav-link">Contact</a>
       <div class="mobileRegestration">
         <a href="/login.html" class="login">Login</a>
         <a href="/signup.html" class="signUp">Sign Up</a>
@@ -35,7 +35,7 @@
   <!-- Main Content -->
   <section class="main" id="features">
     <h1 class="mainHeading">Smart Pantry Management Made Simple</h1>
-    <img src="/images/landingImage.png" alt="" class="landingImg">
+    <img src="/images/landingImage.png" alt="Smart Pantry landing" class="landingImg">
     <p class="supportingHeading">Never waste food again. Track expiration dates, generate smart shopping lists, and manage your pantry like a pro.</p>
 
     <div class="hero-buttons">
@@ -53,17 +53,17 @@
 
     <div class="cartContainer">
       <div id="fDiv">
-        <i class="fa-solid fa-chart-pie" style="color: white; background-color: rgb(14, 119, 224); padding:1rem; border-radius: 5rem;"></i>
+        <i class="fa-solid fa-chart-pie feature-icon"></i>
         <h1 class="identityText">Auto Shopping Lists</h1>
         <p class="explainText">Visual overview of all your pantry items with expiration tracking, quantity management, and smart organization.</p>
       </div>
       <div id="sDiv">
-        <i class="fa-solid fa-list-check" style="color: white; background-color: rgb(51, 180, 51); padding:1rem; border-radius: 5rem;"></i>
+        <i class="fa-solid fa-list-check feature-icon"></i>
         <h1 class="identityText">Pantry Dashboard</h1>
         <p class="explainText">Automatically generate shopping lists based on your consumption patterns and expiring items.</p>
       </div>
       <div id="tDiv">
-        <i class="fa-solid fa-bell" style="color: white; background-color: rgb(252, 156, 21); padding:1rem; border-radius: 5rem;"></i>
+        <i class="fa-solid fa-bell feature-icon"></i>
         <h1 class="identityText">Smart Notifications</h1>
         <p class="explainText">Get timely alerts about expiring items, low stock levels, and personalized recommendations.</p>
       </div>
@@ -75,7 +75,7 @@
     <h1 class="cta_heading">Ready to Transform Your Pantry?</h1>
     <p class="cta_supporting">Join over 10,000 families who are already saving money and reducing food waste with Smart Pantry.</p>
     <div class="btnWrapper">
-      <button class="SFT">Start Free Trial</button>
+      <button class="SFT" onclick="window.location.href='/signup.html'" >Start Free Trial</button>
     </div>
   </section>
 
@@ -101,7 +101,23 @@
   <!-- Contact Section -->
   <section class="contact" id="contact" aria-label="Contact">
     <h2>Contact Us</h2>
-    <p>Have questions or feedback? <a href="mailto:support@smartpantry.com">Email us</a> and we'll get back to you soon!</p>
+    <p>Have questions or feedback? fill the form below and we'll get back to you soon!</p>
+    <form id="contactForm" class="contact-form" autocomplete="off">
+      <div class="form-group">
+        <label for="contactName">Name</label>
+        <input type="text" id="contactName" name="name" required placeholder="Your Name" />
+      </div>
+      <div class="form-group">
+        <label for="contactEmail">Email</label>
+        <input type="email" id="contactEmail" name="email" required placeholder="you@email.com" />
+      </div>
+      <div class="form-group">
+        <label for="contactMessage">Message</label>
+        <textarea id="contactMessage" name="message" required placeholder="Type your message..." rows="4"></textarea>
+      </div>
+      <button type="submit" class="callForAction">Send Message</button>
+      <div id="contactFormStatus" class="form-status" style="display:none;"></div>
+    </form>
   </section>
 
   <!-- Footer Section -->

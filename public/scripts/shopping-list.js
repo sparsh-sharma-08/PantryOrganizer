@@ -116,13 +116,13 @@ function editItem(list, itemIndex) {
 }
 async function markAsBought(itemIndex) {
   const item = toBuyItems[itemIndex];
-  // Ensure expiry_date and category are set
+  // Ensure expiry_date is set; default to today if missing
   let expiry_date = item.expiry_date;
   if (!expiry_date) {
     const today = new Date();
     expiry_date = today.toISOString().split('T')[0];
   }
-  let category = item.category || 'Other';
+  const category = item.category || 'Other';
   // Update shopping list item status
   await fetch(`/api/shopping-list/${item.id}`, {
     method: 'PUT',
@@ -132,7 +132,7 @@ async function markAsBought(itemIndex) {
     },
     body: JSON.stringify({ ...item, status: 'bought' })
   });
-  // Add to pantry (dashboard)
+  // Add to pantry (dashboard) with correct category and expiry_date
   await fetch('/api/items', {
     method: 'POST',
     headers: {
@@ -335,27 +335,40 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function showNotification(message, type = 'info') {
-  let notif = document.getElementById('customNotificationBox');
-  if (!notif) {
-    notif = document.createElement('div');
-    notif.id = 'customNotificationBox';
-    notif.style.position = 'fixed';
-    notif.style.top = '24px';
-    notif.style.right = '24px';
-    notif.style.zIndex = '9999';
-    notif.style.minWidth = '220px';
-    notif.style.padding = '1em 1.5em';
-    notif.style.borderRadius = '6px';
-    notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-    notif.style.fontSize = '1em';
-    notif.style.display = 'none';
-    document.body.appendChild(notif);
-  }
-  notif.textContent = message;
-  notif.style.background = type === 'error' ? '#e74c3c' : '#3498db';
-  notif.style.color = '#fff';
-  notif.style.display = 'block';
-  setTimeout(() => { notif.style.display = 'none'; }, 3500);
+    let notif = document.getElementById('customNotificationBox');
+    if (!notif) {
+        notif = document.createElement('div');
+        notif.id = 'customNotificationBox';
+        notif.style.position = 'fixed';
+        notif.style.top = '24px';
+        notif.style.right = '24px';
+        notif.style.zIndex = '9999';
+        notif.style.minWidth = '220px';
+        notif.style.padding = '1em 1.5em';
+        notif.style.borderRadius = '6px';
+        notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        notif.style.fontSize = '1em';
+        notif.style.display = 'none';
+        notif.style.background = '#3498db';
+        notif.style.color = '#fff';
+        notif.style.transition = 'opacity 0.3s, transform 0.3s';
+        notif.style.opacity = '0';
+        notif.innerHTML = '<span id="notifMsg"></span><button id="notifClose" style="background:none;border:none;color:#fff;font-size:1.2em;position:absolute;top:8px;right:12px;cursor:pointer;">&times;</button>';
+        document.body.appendChild(notif);
+        notif.querySelector('#notifClose').onclick = () => {
+            notif.style.opacity = '0';
+            setTimeout(() => { notif.style.display = 'none'; }, 300);
+        };
+    }
+    notif.querySelector('#notifMsg').textContent = message;
+    notif.style.background = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#3498db');
+    notif.style.display = 'block';
+    notif.style.opacity = '1';
+    notif.style.transform = 'translateY(0)';
+    setTimeout(() => {
+        notif.style.opacity = '0';
+        setTimeout(() => { notif.style.display = 'none'; }, 300);
+    }, 4000);
 }
 
 function showConfirm(message, onConfirm) {

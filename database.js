@@ -68,6 +68,20 @@ db.serialize(() => {
     )
   `);
 
+  // Add expiry_date column if it doesn't exist (for existing databases)
+  db.run(`ALTER TABLE shopping_list ADD COLUMN expiry_date TEXT`, (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.error('Error adding expiry_date column:', err.message);
+    }
+  });
+
+  // Add category column if it doesn't exist (for existing databases)
+  db.run(`ALTER TABLE shopping_list ADD COLUMN category TEXT`, (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.error('Error adding category column:', err.message);
+    }
+  });
+
   // (Optional) Categories per user, if you want dynamic categories
   db.run(`
     CREATE TABLE IF NOT EXISTS categories (

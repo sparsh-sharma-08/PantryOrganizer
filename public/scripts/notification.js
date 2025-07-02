@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
           window.navbarManager.clearAllNotifications();
         }
         updateEmptyState();
-        showToast('Notifications cleared successfully');
+        showNotification('Notifications cleared successfully', 'success');
         renderNotifications();
       }
     });
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           break;
         case 'Add to Shopping List':
-          alert('Added to shopping list!');
+          showNotification('Added to shopping list!', 'success');
           break;
         case 'View Shopping List':
           window.location.href = '/shopping-list.html';
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
           window.location.href = '/dashboard.html';
           break;
         case 'View Changes':
-          alert('Showing shopping list changes...');
+          showNotification('Showing shopping list changes...', 'info');
           break;
         case 'Get Started':
           window.location.href = '/dashboard.html';
@@ -215,4 +215,41 @@ function showToast(message) {
   setTimeout(() => {
     toast.className = toast.className.replace('show', '');
   }, 5000);
+}
+
+function showNotification(message, type = 'info') {
+    let notif = document.getElementById('customNotificationBox');
+    if (!notif) {
+        notif = document.createElement('div');
+        notif.id = 'customNotificationBox';
+        notif.style.position = 'fixed';
+        notif.style.top = '24px';
+        notif.style.right = '24px';
+        notif.style.zIndex = '9999';
+        notif.style.minWidth = '220px';
+        notif.style.padding = '1em 1.5em';
+        notif.style.borderRadius = '6px';
+        notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        notif.style.fontSize = '1em';
+        notif.style.display = 'none';
+        notif.style.background = '#3498db';
+        notif.style.color = '#fff';
+        notif.style.transition = 'opacity 0.3s, transform 0.3s';
+        notif.style.opacity = '0';
+        notif.innerHTML = '<span id="notifMsg"></span><button id="notifClose" style="background:none;border:none;color:#fff;font-size:1.2em;position:absolute;top:8px;right:12px;cursor:pointer;">&times;</button>';
+        document.body.appendChild(notif);
+        notif.querySelector('#notifClose').onclick = () => {
+            notif.style.opacity = '0';
+            setTimeout(() => { notif.style.display = 'none'; }, 300);
+        };
+    }
+    notif.querySelector('#notifMsg').textContent = message;
+    notif.style.background = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#3498db');
+    notif.style.display = 'block';
+    notif.style.opacity = '1';
+    notif.style.transform = 'translateY(0)';
+    setTimeout(() => {
+        notif.style.opacity = '0';
+        setTimeout(() => { notif.style.display = 'none'; }, 300);
+    }, 4000);
 }

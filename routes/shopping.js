@@ -22,7 +22,7 @@ router.get('/', (req, res) => {
 // Adds a new shopping-list item for the authenticated user
 router.post('/', (req, res) => {
   const uid = req.user.id;
-  const { name, quantity, notes, status } = req.body;
+  const { name, quantity, notes, status, expiry_date, category } = req.body;
 
   if (!name || !quantity) {
     return res.status(400).json({ error: 'Missing required fields: name and quantity' });
@@ -30,16 +30,18 @@ router.post('/', (req, res) => {
 
   const sql = `
     INSERT INTO shopping_list
-      (user_id, name, quantity, notes, status)
+      (user_id, name, quantity, notes, status, expiry_date, category)
     VALUES
-      (?, ?, ?, ?, ?)
+      (?, ?, ?, ?, ?, ?, ?)
   `;
   const params = [
     uid,
     name,
     quantity,
     notes || '',
-    status || 'to_buy'
+    status || 'to_buy',
+    expiry_date || '',
+    category || 'Other'
   ];
 
   db.run(sql, params, function(err) {
@@ -53,7 +55,7 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   const uid = req.user.id;
   const { id } = req.params;
-  const { name, quantity, notes, status } = req.body;
+  const { name, quantity, notes, status, expiry_date, category } = req.body;
 
   if (!name || !quantity) {
     return res.status(400).json({ error: 'Missing required fields: name and quantity' });
@@ -65,6 +67,8 @@ router.put('/:id', (req, res) => {
            quantity  = ?,
            notes     = ?,
            status    = ?,
+           expiry_date = ?,
+           category    = ?,
            updated_at = CURRENT_TIMESTAMP
      WHERE id = ? AND user_id = ?
   `;
@@ -73,6 +77,8 @@ router.put('/:id', (req, res) => {
     quantity,
     notes || '',
     status || 'to_buy',
+    expiry_date || '',
+    category || 'Other',
     id,
     uid
   ];
