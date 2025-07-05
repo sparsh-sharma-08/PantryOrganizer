@@ -12,8 +12,17 @@ const STATIC_CATEGORIES = [
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    // Check for token in URL (from OAuth redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+        localStorage.setItem('token', token);
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
     // Session check: redirect to index.html if not logged in
-    if (!getToken()) {
+    if (!localStorage.getItem('token')) {
         window.location.href = '/index.html';
         return;
     }

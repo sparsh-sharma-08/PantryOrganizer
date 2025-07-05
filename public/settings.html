@@ -291,34 +291,26 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2><i class="fa fa-exclamation-triangle"></i> Delete Account</h2>
-        <button class="modal-close" id="closeDeleteModal">&times;</button>
+        <span class="close" id="closeDeleteModal">&times;</span>
       </div>
       <div class="modal-body">
-        <div class="warning-message">
-          <i class="fa fa-exclamation-triangle"></i>
-          <h3>Warning: This action cannot be undone</h3>
-          <p>Deleting your account will permanently remove all your data including:</p>
-          <ul>
-            <li>All pantry items and categories</li>
-            <li>Shopping lists and preferences</li>
-            <li>Account settings and profile information</li>
-          </ul>
+        <div class="warning-box">
+          <p><strong>⚠️ Warning:</strong> This action is permanent and cannot be undone. All your data will be permanently deleted.</p>
         </div>
         
         <form id="deleteAccountForm">
           <div class="form-group">
-            <label for="deleteConfirmText">Type "DELETE" to confirm</label>
-            <input type="text" id="deleteConfirmText" placeholder="DELETE" required>
+            <label for="deleteConfirmText">Type "DELETE" to confirm:</label>
+            <input type="text" id="deleteConfirmText" placeholder="Type DELETE to confirm" required>
           </div>
           
           <div class="form-group">
-            <label for="deletePassword">Enter your password</label>
-            <div class="password-input-container">
-              <input type="password" id="deletePassword" required>
-              <button type="button" class="password-toggle" data-target="deletePassword">
-                <i class="fa fa-eye"></i>
-              </button>
+            <label for="deleteOtp">Enter OTP from your email:</label>
+            <div class="otp-input-group">
+              <input type="text" id="deleteOtp" placeholder="Enter 6-digit OTP" maxlength="6" required>
+              <button type="button" id="requestDeleteOtp" class="btn-secondary">Request OTP</button>
             </div>
+            <small class="form-text">Click "Request OTP" to receive a verification code via email</small>
           </div>
           
           <div class="form-actions">

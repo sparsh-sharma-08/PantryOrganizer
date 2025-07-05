@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const profilePic = document.getElementById('profilePic');
     const deleteAccountModal = document.getElementById('deleteAccountModal');
     const deleteConfirmInput = document.getElementById('deleteConfirmInput');
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
 
     // Modal elements
     const editProfileModal = document.getElementById('editProfileModal');
@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelDelete = document.getElementById('cancelDelete');
     const deleteAccountForm = document.getElementById('deleteAccountForm');
     const deleteConfirmText = document.getElementById('deleteConfirmText');
-    const confirmDelete = document.getElementById('confirmDelete');
+    const deleteOtp = document.getElementById('deleteOtp');
+    const requestDeleteOtp = document.getElementById('requestDeleteOtp');
     
     // Export modal elements
     const exportDataModal = document.getElementById('exportDataModal');
@@ -376,9 +377,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Request OTP for account deletion
+    requestDeleteOtp.addEventListener('click', async () => {
+        try {
+            requestDeleteOtp.disabled = true;
+            requestDeleteOtp.textContent = 'Sending...';
+            
+            const result = await apiCall('/auth/request-delete-otp', {
+                method: 'POST'
+            });
+            
+            if (result.message) {
+                showNotification('OTP sent to your email. Please check your inbox.', 'success');
+                deleteOtp.focus();
+            } else {
+                throw new Error(result.error || 'Failed to send OTP');
+            }
+        } catch (error) {
+            console.error('Error requesting deletion OTP:', error);
+            showNotification('Failed to send OTP. Please try again.', 'error');
+        } finally {
+            requestDeleteOtp.disabled = false;
+            requestDeleteOtp.textContent = 'Request OTP';
+        }
+    });
+
     // Delete account confirmation logic
     deleteConfirmText.addEventListener('input', () => {
-        confirmDelete.disabled = deleteConfirmText.value !== 'DELETE';
+        const canDelete = deleteConfirmText.value === 'DELETE' && deleteOtp.value.length === 6;
+        confirmDelete.disabled = !canDelete;
+    });
+
+    deleteOtp.addEventListener('input', () => {
+        const canDelete = deleteConfirmText.value === 'DELETE' && deleteOtp.value.length === 6;
+        confirmDelete.disabled = !canDelete;
     });
 
     // Delete account form submission
@@ -386,15 +418,15 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         const confirmText = deleteConfirmText.value;
-        const password = document.getElementById('deletePassword').value;
+        const otp = deleteOtp.value;
         
         if (confirmText !== 'DELETE') {
             showNotification('Please type "DELETE" to confirm.', 'error');
             return;
         }
         
-        if (!password) {
-            showNotification('Please enter your password.', 'error');
+        if (!otp || otp.length !== 6) {
+            showNotification('Please enter the 6-digit OTP from your email.', 'error');
             return;
         }
         
@@ -403,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await apiCall('/auth/delete-account', {
                 method: 'DELETE',
                 body: JSON.stringify({
-                    password
+                    otp
                 })
             });
             
@@ -431,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error deleting account:', error);
-            showNotification('Failed to delete account. Please check your password and try again.', 'error');
+            showNotification('Failed to delete account. Please check your OTP and try again.', 'error');
         }
     });
 

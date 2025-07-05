@@ -3,180 +3,423 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pantry Manager</title>
+  <title>Pantry Organizer - Smart Kitchen Management</title>
   <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="stylesheet" href="/styles/index-redesign.css" />
   <link rel="icon" type="image/png" href="/images/favicon.png">
-  <script src="https://kit.fontawesome.com/575a764c98.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <!-- Header Section -->
-  <header>
-    <h1 class="logo">Smart Pantry</h1>
-
-    <div class="landingLinks" id="navLinks">
-      <a href="#features" class="nav-link">Features</a>
-      <a href="#testimonials" class="nav-link">Testimonials</a>
-      <a href="#contact" class="nav-link">Contact</a>
-      <div class="mobileRegestration">
-        <a href="/login.html" class="login">Login</a>
-        <a href="/signup.html" class="signUp">Sign Up</a>
-      </div>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <a href="/" class="logo">🍽️ Pantry Organizer</a>
     </div>
-    <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation" aria-controls="navLinks" aria-expanded="false">
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#testimonials">Testimonials</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/login.html" class="btn-secondary">Login</a>
+      <a href="/signup.html" class="btn-primary">Sign Up</a>
+    </div>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation">
       <span></span><span></span><span></span>
     </button>
+  </nav>
 
-    <div class="userRegestration">
-      <a href="/login.html" class="login">Login</a>
-      <a href="/signup.html" class="signUp">Sign Up</a>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Transform Your Kitchen with Smart Pantry Management</h1>
+      <p>Never waste food again. Track expiration dates, generate smart shopping lists, and manage your pantry like a pro. Join thousands of families saving money and reducing waste.</p>
+      <div class="hero-buttons">
+        <a href="/signup.html" class="btn-primary">Get Started Free</a>
+        <a href="/watch-demo.html" class="btn-secondary">Watch Demo</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-number">10,000+</span>
+          <span class="stat-label">Happy Families</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">30%</span>
+          <span class="stat-label">Less Food Waste</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Smart Alerts</span>
+        </div>
+      </div>
     </div>
-  </header>
-
-  <!-- Main Content -->
-  <section class="main" id="features">
-    <h1 class="mainHeading">Smart Pantry Management Made Simple</h1>
-    <img src="/images/landingImage.png" alt="Smart Pantry landing" class="landingImg">
-    <p class="supportingHeading">Never waste food again. Track expiration dates, generate smart shopping lists, and manage your pantry like a pro.</p>
-
-    <div class="hero-buttons">
-      <button class="callForAction" onclick="window.location.href='/signup.html'">Get Started Free</button>
-      <button class="watchDemo">Watch Demo</button>
+    <div class="hero-image">
+      <div class="app-preview">
+        <div class="phone-mockup">
+          <div class="screen">
+            <div class="app-header">
+              <h3>My Pantry</h3>
+              <i class="fas fa-search"></i>
+            </div>
+            <div class="pantry-items">
+              <div class="item">
+                <div class="item-icon">🥛</div>
+                <div class="item-info">
+                  <h4>Milk</h4>
+                  <p>2 bottles • Expires in 3 days</p>
+                </div>
+                <div class="item-status low">Low</div>
+              </div>
+              <div class="item">
+                <div class="item-icon">🍞</div>
+                <div class="item-info">
+                  <h4>Bread</h4>
+                  <p>1 loaf • Expires tomorrow</p>
+                </div>
+                <div class="item-status expiring">Expiring</div>
+              </div>
+              <div class="item">
+                <div class="item-icon">🥚</div>
+                <div class="item-info">
+                  <h4>Eggs</h4>
+                  <p>12 eggs • Expires in 7 days</p>
+                </div>
+                <div class="item-status good">Good</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-
-
   </section>
 
-  <!-- Main section extended -->
-  <section class="continueMain">
-    <h1 class="hContinue">Powerful Features for Smart Food Management</h1>
-    <p class="supportingContinue">Everything you need to keep your pantry organized and reduce food waste</p>
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Powerful Features for Smart Kitchen Management</h2>
+        <p>Everything you need to keep your pantry organized and reduce food waste</p>
+      </div>
+      
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <h3>Smart Inventory Tracking</h3>
+          <p>Keep track of all your pantry items with quantities, expiry dates, and categories. Never run out of essentials again.</p>
+          <div class="feature-demo">
+            <div class="demo-item">
+              <span class="demo-icon">🥫</span>
+              <span class="demo-text">Tomato Sauce - 3 cans</span>
+            </div>
+            <div class="demo-item">
+              <span class="demo-icon">🍚</span>
+              <span class="demo-text">Rice - 2kg remaining</span>
+            </div>
+          </div>
+        </div>
 
-    <div class="cartContainer">
-      <div id="fDiv">
-        <i class="fa-solid fa-chart-pie feature-icon"></i>
-        <h1 class="identityText">Auto Shopping Lists</h1>
-        <p class="explainText">Visual overview of all your pantry items with expiration tracking, quantity management, and smart organization.</p>
-      </div>
-      <div id="sDiv">
-        <i class="fa-solid fa-list-check feature-icon"></i>
-        <h1 class="identityText">Pantry Dashboard</h1>
-        <p class="explainText">Automatically generate shopping lists based on your consumption patterns and expiring items.</p>
-      </div>
-      <div id="tDiv">
-        <i class="fa-solid fa-bell feature-icon"></i>
-        <h1 class="identityText">Smart Notifications</h1>
-        <p class="explainText">Get timely alerts about expiring items, low stock levels, and personalized recommendations.</p>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+          <h3>Shopping List Management</h3>
+          <p>Create and manage shopping lists effortlessly. Mark items as bought and keep track of what you need.</p>
+          <div class="feature-demo">
+            <div class="demo-item">
+              <span class="demo-icon">✅</span>
+              <span class="demo-text">Milk (bought)</span>
+            </div>
+            <div class="demo-item">
+              <span class="demo-icon">📝</span>
+              <span class="demo-text">Bread (to buy)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-bell"></i>
+          </div>
+          <h3>Smart Notifications</h3>
+          <p>Get timely alerts for expiring items and low stock. Stay on top of your kitchen inventory automatically.</p>
+          <div class="feature-demo">
+            <div class="notification-demo">
+              <div class="notification">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Bread expires tomorrow!</span>
+              </div>
+              <div class="notification">
+                <i class="fas fa-info-circle"></i>
+                <span>Milk running low</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <h3>Access Anywhere</h3>
+          <p>Use Pantry Organizer on any device - desktop, tablet, or mobile. Your data syncs across all platforms.</p>
+          <div class="feature-demo">
+            <div class="devices-demo">
+              <i class="fas fa-desktop"></i>
+              <i class="fas fa-tablet-alt"></i>
+              <i class="fas fa-mobile-alt"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+          <h3>Analytics & Insights</h3>
+          <p>Get insights into your consumption patterns, reduce food waste, and optimize your grocery shopping.</p>
+          <div class="feature-demo">
+            <div class="chart-demo">
+              <div class="chart-bar" style="height: 60%"></div>
+              <div class="chart-bar" style="height: 80%"></div>
+              <div class="chart-bar" style="height: 40%"></div>
+              <div class="chart-bar" style="height: 90%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Secure & Private</h3>
+          <p>Your data is protected with industry-standard security. Multiple authentication options including OAuth.</p>
+          <div class="feature-demo">
+            <div class="security-demo">
+              <i class="fas fa-lock"></i>
+              <span>End-to-end encryption</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Call To Action Section -->
-  <section class="CTA">
-    <h1 class="cta_heading">Ready to Transform Your Pantry?</h1>
-    <p class="cta_supporting">Join over 10,000 families who are already saving money and reducing food waste with Smart Pantry.</p>
-    <div class="btnWrapper">
-      <button class="SFT" onclick="window.location.href='/signup.html'" >Start Free Trial</button>
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <h2>How It Works</h2>
+        <p>Get started in minutes with our simple 3-step process</p>
+      </div>
+      
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-icon">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <h3>Sign Up</h3>
+          <p>Create your free account in seconds. No credit card required.</p>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-icon">
+            <i class="fas fa-plus-circle"></i>
+          </div>
+          <h3>Add Your Items</h3>
+          <p>Start adding your pantry items with quantities and expiry dates.</p>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>Stay Organized</h3>
+          <p>Get smart notifications and manage your kitchen effortlessly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits">
+    <div class="container">
+      <div class="section-header">
+        <h2>Why Choose Pantry Organizer?</h2>
+        <p>Join thousands of families who have transformed their kitchen management</p>
+      </div>
+      
+      <div class="benefits-grid">
+        <div class="benefit-item">
+          <div class="benefit-icon">💰</div>
+          <h3>Save Money</h3>
+          <p>Reduce food waste and avoid buying duplicates. Save up to 30% on your grocery bills.</p>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">⏰</div>
+          <h3>Save Time</h3>
+          <p>Quick inventory checks and smart shopping lists save you hours every week.</p>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">🌱</div>
+          <h3>Reduce Waste</h3>
+          <p>Track expiry dates and use items before they go bad. Help the environment.</p>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon">🍳</div>
+          <h3>Better Cooking</h3>
+          <p>Always know what you have available. Plan meals better and cook with confidence.</p>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Testimonials Section -->
-  <section class="testimonials" id="testimonials" aria-label="Testimonials">
-    <h2>What Our Users Say</h2>
-    <div class="testimonial-cards">
-      <div class="testimonial-card">
-        <p>"Smart Pantry has changed the way I shop and cook. No more wasted food!"</p>
-        <span>- Priya S.</span>
+  <section id="testimonials" class="testimonials">
+    <div class="container">
+      <div class="section-header">
+        <h2>What Our Users Say</h2>
+        <p>Real stories from families who love Pantry Organizer</p>
       </div>
-      <div class="testimonial-card">
-        <p>"The notifications are a lifesaver. I always know what's about to expire."</p>
-        <span>- Alex R.</span>
+      
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-content">
+            <p>"Pantry Organizer has completely changed how I manage my kitchen. No more wasted food and I always know what I need to buy!"</p>
+          </div>
+          <div class="testimonial-author">
+            <div class="author-avatar">PS</div>
+            <div class="author-info">
+              <h4>Priya Sharma</h4>
+              <span>Home Chef</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-card">
+          <div class="testimonial-content">
+            <p>"The smart notifications are a lifesaver. I never miss when something is about to expire anymore."</p>
+          </div>
+          <div class="testimonial-author">
+            <div class="author-avatar">AR</div>
+            <div class="author-info">
+              <h4>Alex Rodriguez</h4>
+              <span>Busy Parent</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-card">
+          <div class="testimonial-content">
+            <p>"The dashboard is so intuitive. My pantry has never been more organized, and I'm saving money every month!"</p>
+          </div>
+          <div class="testimonial-author">
+            <div class="author-avatar">JL</div>
+            <div class="author-info">
+              <h4>Jamie Lee</h4>
+              <span>Family Manager</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="testimonial-card">
-        <p>"The dashboard is so easy to use. My pantry is finally organized!"</p>
-        <span>- Jamie L.</span>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta">
+    <div class="container">
+      <h2>Ready to Transform Your Kitchen?</h2>
+      <p>Join thousands of users who have already simplified their kitchen management</p>
+      <div class="cta-buttons">
+        <a href="/signup.html" class="btn-primary">Get Started Free</a>
+        <a href="/watch-demo.html" class="btn-secondary">Watch Demo</a>
       </div>
     </div>
   </section>
 
   <!-- Contact Section -->
-  <section class="contact" id="contact" aria-label="Contact">
-    <h2>Contact Us</h2>
-    <p>Have questions or feedback? fill the form below and we'll get back to you soon!</p>
-    <form id="contactForm" class="contact-form" autocomplete="off">
-      <div class="form-group">
-        <label for="contactName">Name</label>
-        <input type="text" id="contactName" name="name" required placeholder="Your Name" />
+  <section id="contact" class="contact">
+    <div class="container">
+      <div class="contact-content">
+        <div class="contact-info">
+          <h2>Get in Touch</h2>
+          <p>Have questions or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+          <div class="contact-details">
+            <div class="contact-item">
+              <i class="fas fa-envelope"></i>
+              <span>support@pantryorganizer.com</span>
+            </div>
+            <div class="contact-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>Kharar, Chandigarh, India</span>
+            </div>
+          </div>
+        </div>
+        
+        <form id="contactForm" class="contact-form">
+          <div class="form-group">
+            <label for="contactName">Name</label>
+            <input type="text" id="contactName" name="name" required placeholder="Your Name" />
+          </div>
+          <div class="form-group">
+            <label for="contactEmail">Email</label>
+            <input type="email" id="contactEmail" name="email" required placeholder="you@email.com" />
+          </div>
+          <div class="form-group">
+            <label for="contactMessage">Message</label>
+            <textarea id="contactMessage" name="message" required placeholder="Type your message..." rows="4"></textarea>
+          </div>
+          <button type="submit" class="btn-primary">Send Message</button>
+          <div id="contactFormStatus" class="form-status" style="display:none;"></div>
+        </form>
       </div>
-      <div class="form-group">
-        <label for="contactEmail">Email</label>
-        <input type="email" id="contactEmail" name="email" required placeholder="you@email.com" />
-      </div>
-      <div class="form-group">
-        <label for="contactMessage">Message</label>
-        <textarea id="contactMessage" name="message" required placeholder="Type your message..." rows="4"></textarea>
-      </div>
-      <button type="submit" class="callForAction">Send Message</button>
-      <div id="contactFormStatus" class="form-status" style="display:none;"></div>
-    </form>
+    </div>
   </section>
 
-  <!-- Footer Section -->
-  <footer>
-    <div class="footerTop">
-    <div class="wrapper1">
-      <h1 class="footer_logo">Smart Pantry</h1>
-      <p class="footer_supporting">The smart way to manage your pantry, reduce food waste, and save money on groceries.</p>
-      <i class="fa-brands fa-facebook fa-2x" id="fb"></i>
-      <i class="fa-brands fa-instagram fa-2x" id="socials"></i>
-      <i class="fa-brands fa-twitter fa-2x" id="socials"></i>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>🍽️ Pantry Organizer</h3>
+          <p>Smart kitchen management for modern households. Transform your pantry, reduce waste, and save money.</p>
+          <p>📍 Kharar, Chandigarh, India</p>
+        </div>
+        <div class="footer-section">
+          <h4>Product</h4>
+          <a href="/watch-demo.html">Watch Demo</a>
+          <a href="/signup.html">Sign Up</a>
+          <a href="/login.html">Login</a>
+          <a href="#features">Features</a>
+        </div>
+        <div class="footer-section">
+          <h4>Support</h4>
+          <a href="/support.html">Contact Us</a>
+          <a href="/privacy-policy.html">Privacy Policy</a>
+          <a href="/terms-of-service.html">Terms of Service</a>
+        </div>
+        <div class="footer-section">
+          <h4>Connect</h4>
+          <div class="social-links">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 Pantry Organizer. All rights reserved.</p>
+      </div>
     </div>
-
-    <div class="wrapper2">
-      <p class="Account">Account</p>
-      <a href="/login.html" id="firstA">Login</a>
-      <a href="/signup.html">Sign Up</a>
-      <a href="/dashboard.html">Reset Password</a>
-    </div>
-
-    <div class="wrapper3">
-      <p class="Legal"> Legal </p>
-        <a href="/privacy-policy.html">Privacy Policy</a>
-        <a href="/terms-of-service.html">Terms of Service</a>
-        <a href="#">Cookie Policy</a>
-      </div>
-      </div>
-      <hr>
-      <div class="last">
-        <p> &#169; 2025 Smart Pantry. All rights reserved</p>
-      </div>
   </footer>
 
-  <!-- Javascript Links -->
+  <!-- Scripts -->
   <script src="/scripts/app.js" type="module"></script>
-  <script>
-    // Hamburger menu toggle
-    const hamburger = document.getElementById('hamburgerBtn');
-    const navLinks = document.getElementById('navLinks');
-    hamburger.addEventListener('click', function() {
-      navLinks.classList.toggle('open');
-      hamburger.classList.toggle('open');
-      const expanded = hamburger.getAttribute('aria-expanded') === 'true';
-      hamburger.setAttribute('aria-expanded', !expanded);
-    });
-    // Smooth scroll for nav links
-    document.querySelectorAll('.landingLinks a').forEach(link => {
-      link.addEventListener('click', function(e) {
-        if(this.hash) {
-          e.preventDefault();
-          document.querySelector(this.hash).scrollIntoView({ behavior: 'smooth' });
-          // Close nav on mobile after click
-          navLinks.classList.remove('open');
-          hamburger.classList.remove('open');
-          hamburger.setAttribute('aria-expanded', 'false');
-        }
-      });
-    });
-  </script>
-  
+  <script src="/scripts/index-redesign.js"></script>
 </body>
 </html>

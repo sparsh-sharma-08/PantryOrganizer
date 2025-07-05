@@ -958,4 +958,68 @@ html, body {
     background-color: red;
   box-shadow: 0 6px 24px rgba(255, 88, 88, 0.18);
   transform: translateY(-2px) scale(1.03);
+}
+
+/* OTP Input Group */
+.otp-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.otp-input-group input {
+    flex: 1;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.otp-input-group button {
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+/* Warning Box */
+.warning-box {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.warning-box p {
+    margin: 0;
+    color: #856404;
+    font-weight: 500;
+}
+
+/* Form Text */
+.form-text {
+    color: #6c757d;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Delete Account Modal Specific Styles */
+#deleteAccountModal .modal-content {
+    border-left: 4px solid #dc3545;
+}
+
+#deleteAccountModal .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+#deleteAccountModal .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+#deleteAccountModal .btn-danger:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    cursor: not-allowed;
 } 

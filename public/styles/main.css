@@ -315,7 +315,7 @@ footer {
 .footer_supporting {
     max-width: 70%;
     margin-left: -0.5rem;
-    text-align: center;
+    text-align: left;
 }
 .footerTop .wrapper2,
 .footerTop .wrapper3 {
