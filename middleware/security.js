@@ -5,7 +5,7 @@ const { body, validationResult } = require('express-validator');
 // Rate limiting configurations
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs for auth routes
+  max: 10, // limit each IP to 10 requests per windowMs for auth routes
   message: {
     error: 'Too many authentication attempts, please try again later.',
     retryAfter: '15 minutes'

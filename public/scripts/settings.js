@@ -114,29 +114,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const userData = await apiCall('/auth/profile');
             currentName.textContent = userData.name || 'No name set';
             currentUsername.textContent = userData.email || 'No email set';
-            
             // Store user data for edit form
             window.currentUserData = userData;
-            
             // Handle profile photo
             if (userData.profile_photo) {
-                // Set profile photo in localStorage and update UI
                 localStorage.setItem('userAvatar', userData.profile_photo);
-                // Update the main profile picture in the settings card
                 currentProfilePic.innerHTML = `<img src="${userData.profile_photo}" alt="Profile" class="avatar"/>`;
                 if (window.navbarManager) {
                     window.navbarManager.updateUserAvatar();
                 }
             } else {
-                // Clear any existing profile photo
                 localStorage.removeItem('userAvatar');
-                // Show placeholder in the main profile picture
                 currentProfilePic.innerHTML = `<i class="fa fa-user"></i>`;
                 if (window.navbarManager) {
                     window.navbarManager.updateUserAvatar();
                 }
             }
-            
             // Update navbar avatar as well
             const navbarAvatar = document.getElementById('userAvatar');
             if (navbarAvatar) {
@@ -148,8 +141,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Failed to load user profile:', error);
-            currentName.textContent = 'Error loading profile';
-            currentUsername.textContent = 'Error loading email';
+            let errorMsg = 'Error loading profile';
+            let emailMsg = 'Error loading email';
+            if (error && error.message) {
+                errorMsg = error.message;
+                emailMsg = error.message;
+            }
+            // If error is 401, auto-logout
+            if (error && error.message && error.message.includes('401')) {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+                return;
+            }
+            currentName.textContent = errorMsg;
+            currentUsername.textContent = emailMsg;
         }
     }
 

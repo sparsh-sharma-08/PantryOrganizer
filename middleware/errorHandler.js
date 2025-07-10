@@ -7,7 +7,7 @@ const errorHandler = (err, req, res, next) => {
 
   // Set default error values
   let statusCode = err.statusCode || 500;
-  let message = err.message || 'Internal Server Error';
+  let message = typeof err.message === 'string' ? err.message : 'Internal Server Error';
   let details = null;
 
   // Handle specific error types

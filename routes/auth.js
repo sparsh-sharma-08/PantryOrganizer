@@ -14,10 +14,10 @@ const { body, validationResult } = require('express-validator');
 const {
   validateRegistration,
   validateLogin,
-  handleValidationErrors,
-  logSecurityEvent,
-  logUserActivity
+  handleValidationErrors
 } = require('../middleware/security');
+
+const { logUserActivity } = require('../utils/logger');
 
 // Import error handling
 const {
@@ -37,44 +37,69 @@ passport.use(new GoogleStrategy({
   },
   async function(accessToken, refreshToken, profile, cb) {
     try {
-      const email = profile.emails[0].value;
-      const name = profile.displayName;
+      let email = null;
+      if (profile.emails && profile.emails.length > 0) {
+        email = profile.emails[0].value;
+      }
+      if (!email) {
+        return cb(new Error('No email found in your Google profile. Please ensure your Google account has a public email or use another login method.'));
+      }
+      const name = profile.displayName || (profile.name && (profile.name.givenName + ' ' + profile.name.familyName)) || 'Google User';
       const googleId = profile.id;
-
+      // Get profile picture URL (Google)
+      let profilePhoto = null;
+      if (profile.photos && profile.photos.length > 0) {
+        profilePhoto = profile.photos[0].value;
+      }
       // Check if user exists
       db.get('SELECT * FROM users WHERE email = ? OR google_id = ?', [email, googleId], (err, user) => {
         if (err) return cb(err);
         
         if (user) {
-          // User exists, update google_id if not set
+          // User exists, update google_id and profile_photo if needed
+          const updates = [];
+          const params = [];
           if (!user.google_id) {
-            db.run('UPDATE users SET google_id = ? WHERE id = ?', [googleId, user.id], (updateErr) => {
+            updates.push('google_id = ?');
+            params.push(googleId);
+          }
+          if (profilePhoto && user.profile_photo !== profilePhoto) {
+            updates.push('profile_photo = ?');
+            params.push(profilePhoto);
+          }
+          if (updates.length > 0) {
+            params.push(user.id);
+            db.run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params, (updateErr) => {
               if (updateErr) return cb(updateErr);
-              return cb(null, user);
+              // Return updated user object
+              db.get('SELECT * FROM users WHERE id = ?', [user.id], (err2, updatedUser) => {
+                if (err2) return cb(err2);
+                return cb(null, updatedUser);
+              });
             });
           } else {
             return cb(null, user);
           }
+        } else {
+          // Create new user
+          const newUser = {
+            name,
+            email,
+            google_id: googleId,
+            is_verified: 1, // Google users are pre-verified
+            profile_photo: profilePhoto
+          };
+          db.run(
+            'INSERT INTO users (name, email, google_id, is_verified, profile_photo) VALUES (?, ?, ?, ?, ?)',
+            [newUser.name, newUser.email, newUser.google_id, newUser.is_verified, newUser.profile_photo],
+            function(err) {
+              if (err) return cb(err);
+              newUser.id = this.lastID;
+              logUserActivity('user_registered_oauth', newUser.id, { provider: 'google' });
+              cb(null, newUser);
+            }
+          );
         }
-        
-        // Create new user
-        const newUser = {
-          name,
-          email,
-          google_id: googleId,
-          is_verified: 1 // Google users are pre-verified
-        };
-        
-        db.run(
-          'INSERT INTO users (name, email, google_id, is_verified) VALUES (?, ?, ?, ?)',
-          [newUser.name, newUser.email, newUser.google_id, newUser.is_verified],
-          function(err) {
-            if (err) return cb(err);
-            newUser.id = this.lastID;
-            logUserActivity('user_registered_oauth', newUser.id, { provider: 'google' });
-            cb(null, newUser);
-          }
-        );
       });
     } catch (error) {
       return cb(error);
@@ -90,48 +115,70 @@ passport.use(new GitHubStrategy({
   },
   async function(accessToken, refreshToken, profile, cb) {
     try {
-      const email = profile.emails[0]?.value;
-      const name = profile.displayName || profile.username;
-      const githubId = profile.id;
-
-      if (!email) {
-        return cb(new Error('Email not provided by GitHub'));
+      let email = null;
+      if (profile.emails && profile.emails.length > 0) {
+        email = profile.emails[0].value;
       }
-
+      if (!email) {
+        return cb(new Error('No public email found in your GitHub profile. Please add a public email to your GitHub account or use another login method.'));
+      }
+      const name = profile.displayName || profile.username || 'GitHub User';
+      const githubId = profile.id;
+      // Get profile picture URL (GitHub)
+      let profilePhoto = null;
+      if (profile.photos && profile.photos.length > 0) {
+        profilePhoto = profile.photos[0].value;
+      } else if (profile._json && profile._json.avatar_url) {
+        profilePhoto = profile._json.avatar_url;
+      }
       // Check if user exists
       db.get('SELECT * FROM users WHERE email = ? OR github_id = ?', [email, githubId], (err, user) => {
         if (err) return cb(err);
         
         if (user) {
-          // User exists, update github_id if not set
+          // User exists, update github_id and profile_photo if needed
+          const updates = [];
+          const params = [];
           if (!user.github_id) {
-            db.run('UPDATE users SET github_id = ? WHERE id = ?', [githubId, user.id], (updateErr) => {
+            updates.push('github_id = ?');
+            params.push(githubId);
+          }
+          if (profilePhoto && user.profile_photo !== profilePhoto) {
+            updates.push('profile_photo = ?');
+            params.push(profilePhoto);
+          }
+          if (updates.length > 0) {
+            params.push(user.id);
+            db.run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params, (updateErr) => {
               if (updateErr) return cb(updateErr);
-              return cb(null, user);
+              db.get('SELECT * FROM users WHERE id = ?', [user.id], (err2, updatedUser) => {
+                if (err2) return cb(err2);
+                return cb(null, updatedUser);
+              });
             });
           } else {
             return cb(null, user);
           }
+        } else {
+          // Create new user
+          const newUser = {
+            name,
+            email,
+            github_id: githubId,
+            is_verified: 1, // GitHub users are pre-verified
+            profile_photo: profilePhoto
+          };
+          db.run(
+            'INSERT INTO users (name, email, github_id, is_verified, profile_photo) VALUES (?, ?, ?, ?, ?)',
+            [newUser.name, newUser.email, newUser.github_id, newUser.is_verified, newUser.profile_photo],
+            function(err) {
+              if (err) return cb(err);
+              newUser.id = this.lastID;
+              logUserActivity('user_registered_oauth', newUser.id, { provider: 'github' });
+              cb(null, newUser);
+            }
+          );
         }
-        
-        // Create new user
-        const newUser = {
-          name,
-          email,
-          github_id: githubId,
-          is_verified: 1 // GitHub users are pre-verified
-        };
-        
-        db.run(
-          'INSERT INTO users (name, email, github_id, is_verified) VALUES (?, ?, ?, ?)',
-          [newUser.name, newUser.email, newUser.github_id, newUser.is_verified],
-          function(err) {
-            if (err) return cb(err);
-            newUser.id = this.lastID;
-            logUserActivity('user_registered_oauth', newUser.id, { provider: 'github' });
-            cb(null, newUser);
-          }
-        );
       });
     } catch (error) {
       return cb(error);
@@ -168,20 +215,43 @@ const transporter = nodemailer.createTransport({
 const otpStore = {};
 const deleteOtpStore = {}; // Separate store for deletion OTPs
 
+// Helper for safe logging
+function safeLog(...args) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(...args);
+  }
+}
+function safeErrorLog(...args) {
+  // Always log errors, but mask sensitive info
+  if (args && args.length > 0 && typeof args[0] === 'string') {
+    args[0] = args[0].replace(/([\w.-]+)@([\w.-]+)/g, '***@***');
+  }
+  console.error(...args);
+}
+
 // --- Register ---
 router.post('/register', validateRegistration, handleValidationErrors, asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
   
+  // Log the incoming request
+  safeLog('Registration attempt:', { name, email: email ? '***' : 'undefined', hasPassword: !!password });
+  
   try {
     const user = await new Promise((resolve, reject) => {
       db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
-        if (err) reject(err);
-        else resolve(user);
+        if (err) {
+          safeErrorLog('Database error during registration:', err);
+          return reject(err);
+        } else {
+          safeLog('User lookup result:', user ? 'User exists' : 'User not found');
+          resolve(user);
+        }
       });
     });
 
     if (user) {
-      throw handleValidationError([{ field: 'email', message: 'Email already in use' }]);
+      safeLog('Registration failed: Email already in use');
+      return res.status(409).json({ error: true, message: 'Email already in use. Please use a different email or log in.' });
     }
 
     const hash = await bcrypt.hash(password, 12); // Increased salt rounds for security
@@ -191,8 +261,13 @@ router.post('/register', validateRegistration, handleValidationErrors, asyncHand
         'INSERT INTO users (name, email, password_hash, is_verified) VALUES (?, ?, ?, 1)',
         [name, email, hash],
         function (err) {
-          if (err) reject(err);
-          else resolve(this.lastID);
+          if (err) {
+            safeErrorLog('Database insert error:', err);
+            return reject(err);
+          } else {
+            safeLog('User created successfully with ID:', this.lastID);
+            resolve(this.lastID);
+          }
         }
       );
     });
@@ -206,7 +281,7 @@ router.post('/register', validateRegistration, handleValidationErrors, asyncHand
 
     logUserActivity('user_registered', result, { method: 'email' });
     
-    res.status(201).json({
+    const response = {
       message: 'Account created successfully',
       token,
       user: {
@@ -214,9 +289,22 @@ router.post('/register', validateRegistration, handleValidationErrors, asyncHand
         name,
         email
       }
-    });
+    };
+    
+    safeLog('Registration successful, sending response:', { ...response, token: '***' });
+    res.status(201).json(response);
   } catch (error) {
-    throw handleDatabaseError(error);
+    safeErrorLog('Registration error caught:', error);
+    // Handle known database constraint errors
+    if (error && error.code === 'SQLITE_CONSTRAINT') {
+      return res.status(409).json({ error: true, message: 'Email already in use. Please use a different email or log in.' });
+    }
+    // Handle validation errors
+    if (error && error.name === 'ValidationError') {
+      return res.status(400).json({ error: true, message: 'Validation failed. Please check your input.' });
+    }
+    // Fallback for other errors
+    res.status(500).json({ error: true, message: 'An unexpected error occurred during registration. Please try again.' });
   }
 }));
 
@@ -224,23 +312,38 @@ router.post('/register', validateRegistration, handleValidationErrors, asyncHand
 router.post('/login', validateLogin, handleValidationErrors, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
+  // Log the incoming request
+  safeLog('Login attempt:', { email: email ? '***' : 'undefined', hasPassword: !!password });
+
   try {
     const user = await new Promise((resolve, reject) => {
       db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
-        if (err) reject(err);
-        else resolve(user);
+        if (err) {
+          safeErrorLog('Database error during login:', err);
+          reject(err);
+        } else {
+          safeLog('User lookup result:', user ? 'User found' : 'User not found');
+          resolve(user);
+        }
       });
     });
 
     if (!user) {
-      logSecurityEvent('failed_login_attempt', req, { email, reason: 'user_not_found' });
-      throw handleAuthError('Invalid email or password');
+      safeLog('Login failed: User not found');
+      return res.status(401).json({ error: true, message: 'No account found with that email.' });
+    }
+
+    if (user.is_verified === 0) {
+      safeLog('Login failed: Account not verified');
+      return res.status(401).json({ error: true, message: 'Account not verified. Please check your email.' });
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    safeLog('Password validation result:', isValidPassword);
+    
     if (!isValidPassword) {
-      logSecurityEvent('failed_login_attempt', req, { email, reason: 'invalid_password' });
-      throw handleAuthError('Invalid email or password');
+      safeLog('Login failed: Invalid password');
+      return res.status(401).json({ error: true, message: 'Incorrect password.' });
     }
 
     const token = jwt.sign(
@@ -251,7 +354,7 @@ router.post('/login', validateLogin, handleValidationErrors, asyncHandler(async 
 
     logUserActivity('user_login', user.id, { method: 'email' });
 
-    res.json({
+    const response = {
       message: 'Logged in successfully',
       token,
       user: {
@@ -259,8 +362,12 @@ router.post('/login', validateLogin, handleValidationErrors, asyncHandler(async 
         name: user.name,
         email: user.email
       }
-    });
+    };
+
+    safeLog('Login successful, sending response:', { ...response, token: '***' });
+    res.json(response);
   } catch (error) {
+    safeErrorLog('Login error caught:', error);
     throw handleDatabaseError(error);
   }
 }));
@@ -306,24 +413,35 @@ router.get('/logout', (req, res) => {
 // --- Get Profile ---
 router.get('/profile', requireAuth, asyncHandler(async (req, res) => {
   try {
+    const userId = req.user && req.user.id;
+    if (!userId) {
+      safeErrorLog('Profile fetch: No user id in request.');
+      return res.status(401).json({ error: true, message: 'Authentication failed: No user id.' });
+    }
     const user = await new Promise((resolve, reject) => {
       db.get(
         'SELECT id, name, email, profile_photo, created_at FROM users WHERE id = ?',
-        [req.user.id],
+        [userId],
         (err, user) => {
-          if (err) reject(err);
-          else resolve(user);
+          if (err) {
+            safeErrorLog('Profile fetch: DB error:', err);
+            reject(err);
+          } else {
+            resolve(user);
+          }
         }
       );
     });
 
     if (!user) {
-      throw handleAuthError('User not found');
+      safeErrorLog('Profile fetch: User not found for id', userId);
+      return res.status(404).json({ error: true, message: 'User not found' });
     }
 
     res.json(user);
   } catch (error) {
-    throw handleDatabaseError(error);
+    safeErrorLog('Profile fetch: Exception:', error);
+    res.status(500).json({ error: true, message: 'Internal server error', details: error.message });
   }
 }));
 
@@ -401,7 +519,7 @@ router.put('/change-password', requireAuth, asyncHandler(async (req, res) => {
     });
 
     logUserActivity('password_changed', req.user.id);
-    logSecurityEvent('password_changed', req, { userId: req.user.id });
+    safeLog('Password changed successfully');
 
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
@@ -467,7 +585,7 @@ router.post('/forgot-password', asyncHandler(async (req, res) => {
       `
     });
 
-    logSecurityEvent('password_reset_requested', req, { email });
+    safeLog('Password reset link sent for email:', email);
 
     res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
   } catch (error) {
@@ -516,7 +634,7 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
       );
     });
 
-    logSecurityEvent('password_reset_completed', req, { userId: user.id });
+    safeLog('Password reset completed for user:', user.id);
 
     res.json({ message: 'Password reset successfully' });
   } catch (error) {
@@ -568,7 +686,7 @@ router.delete('/delete-account', requireAuth, asyncHandler(async (req, res) => {
       });
     });
 
-    logSecurityEvent('account_deleted', req, { userId: req.user.id });
+    safeLog('Account deleted for user:', req.user.id);
 
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {

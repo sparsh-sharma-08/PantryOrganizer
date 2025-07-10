@@ -34,6 +34,10 @@ const requireAuth = require('./middleware/requireAuth');
 const db = require('./database');
 const settingsRouter = require('./routes/settings');
 
+// Import session store
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -82,8 +86,13 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 6) Session middleware with enhanced security
-app.use(require('express-session')({
+// 6) Session middleware with enhanced security and SQLite store
+app.use(session({
+  store: new SQLiteStore({
+    db: 'sessions.db',
+    dir: './',
+    table: 'sessions'
+  }),
   secret: process.env.SESSION_SECRET || 'your-session-secret-change-this',
   resave: false,
   saveUninitialized: false,
@@ -292,6 +301,20 @@ app.use('/api/*', notFoundHandler);
 // 19) Serve SPA for all other routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// --- CATCH NON-JSON RESPONSES ---
+app.use((req, res, next) => {
+  // Only intercept if response is not already sent
+  if (!res.headersSent) {
+    // If response is not JSON, send a generic error
+    res.status(500).json({
+      error: true,
+      message: 'Unexpected server response. Please try again later.'
+    });
+  } else {
+    next();
+  }
 });
 
 // 20) Global error handler (must be last)
