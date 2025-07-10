@@ -12,8 +12,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "backup": "node utils/backup.js",
-    "health-check": "curl http://localhost:3000/api/health",
-    "postinstall": "npm rebuild sqlite3 --build-from-source"
+    "health-check": "curl http://localhost:3000/api/health"
   },
   "repository": {
     "type": "git",
