@@ -57,7 +57,8 @@ app.use(morgan('combined', { stream: logger.stream }));
 // 4) CORS setup with allowed origins
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:3000',
-  'https://yourdomain.com', // Add your production domain
+  'https://pantryorganizer.onrender.com', // Render production frontend
+  'https://yourdomain.com',
   'https://www.yourdomain.com'
 ];
 
