@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Demo - Pantry Organizer</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/watch-demo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" class="logo">🍽️ Pantry Organizer</a>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/watch-demo.html" class="active">Watch Demo</a>
+            <a href="/login.html">Login</a>
+            <a href="/signup.html">Sign Up</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>See Pantry Organizer in Action</h1>
+            <p>Discover how our smart kitchen management solution can transform your daily cooking experience</p>
+            <div class="hero-buttons">
+                <a href="/signup.html" class="btn-primary">Start Free Trial</a>
+                <a href="#features" class="btn-secondary">Explore Features</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="app-preview">
+                <div class="phone-mockup">
+                    <div class="screen">
+                        <div class="app-header">
+                            <h3>My Pantry</h3>
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="pantry-items">
+                            <div class="item">
+                                <div class="item-icon">🥛</div>
+                                <div class="item-info">
+                                    <h4>Milk</h4>
+                                    <p>2 bottles • Expires in 3 days</p>
+                                </div>
+                                <div class="item-status low">Low</div>
+                            </div>
+                            <div class="item">
+                                <div class="item-icon">🍞</div>
+                                <div class="item-info">
+                                    <h4>Bread</h4>
+                                    <p>1 loaf • Expires tomorrow</p>
+                                </div>
+                                <div class="item-status expiring">Expiring</div>
+                            </div>
+                            <div class="item">
+                                <div class="item-icon">🥚</div>
+                                <div class="item-info">
+                                    <h4>Eggs</h4>
+                                    <p>12 eggs • Expires in 7 days</p>
+                                </div>
+                                <div class="item-status good">Good</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Powerful Features for Smart Kitchen Management</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3>Smart Inventory Tracking</h3>
+                    <p>Keep track of all your pantry items with quantities, expiry dates, and categories. Never run out of essentials again.</p>
+                    <div class="feature-demo">
+                        <div class="demo-item">
+                            <span class="demo-icon">🥫</span>
+                            <span class="demo-text">Tomato Sauce - 3 cans</span>
+                        </div>
+                        <div class="demo-item">
+                            <span class="demo-icon">🍚</span>
+                            <span class="demo-text">Rice - 2kg remaining</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3>Shopping List Management</h3>
+                    <p>Create and manage shopping lists effortlessly. Mark items as bought and keep track of what you need.</p>
+                    <div class="feature-demo">
+                        <div class="demo-item">
+                            <span class="demo-icon">✅</span>
+                            <span class="demo-text">Milk (bought)</span>
+                        </div>
+                        <div class="demo-item">
+                            <span class="demo-icon">📝</span>
+                            <span class="demo-text">Bread (to buy)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Smart Notifications</h3>
+                    <p>Get timely alerts for expiring items and low stock. Stay on top of your kitchen inventory automatically.</p>
+                    <div class="feature-demo">
+                        <div class="notification-demo">
+                            <div class="notification">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Bread expires tomorrow!</span>
+                            </div>
+                            <div class="notification">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Milk running low</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Access Anywhere</h3>
+                    <p>Use Pantry Organizer on any device - desktop, tablet, or mobile. Your data syncs across all platforms.</p>
+                    <div class="feature-demo">
+                        <div class="devices-demo">
+                            <i class="fas fa-desktop"></i>
+                            <i class="fas fa-tablet-alt"></i>
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Analytics & Insights</h3>
+                    <p>Get insights into your consumption patterns, reduce food waste, and optimize your grocery shopping.</p>
+                    <div class="feature-demo">
+                        <div class="chart-demo">
+                            <div class="chart-bar" style="height: 60%"></div>
+                            <div class="chart-bar" style="height: 80%"></div>
+                            <div class="chart-bar" style="height: 40%"></div>
+                            <div class="chart-bar" style="height: 90%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>Your data is protected with industry-standard security. Multiple authentication options including OAuth.</p>
+                    <div class="feature-demo">
+                        <div class="security-demo">
+                            <i class="fas fa-lock"></i>
+                            <span>End-to-end encryption</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Demo Section -->
+    <section class="interactive-demo">
+        <div class="container">
+            <h2>Try It Yourself</h2>
+            <p>Experience the app interface with our interactive demo</p>
+            
+            <div class="demo-container">
+                <div class="demo-tabs">
+                    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                    <button class="tab-btn" data-tab="shopping">Shopping List</button>
+                    <button class="tab-btn" data-tab="settings">Settings</button>
+                </div>
+                
+                <div class="demo-content">
+                    <div class="tab-content active" id="dashboard">
+                        <div class="demo-header">
+                            <h3>My Pantry Dashboard</h3>
+                            <div class="demo-stats">
+                                <span class="stat">Total Items: 24</span>
+                                <span class="stat">Expiring Soon: 3</span>
+                                <span class="stat">Low Stock: 2</span>
+                            </div>
+                        </div>
+                        <div class="demo-items">
+                            <div class="demo-item-card">
+                                <div class="item-header">
+                                    <span class="item-icon">🥛</span>
+                                    <span class="item-name">Milk</span>
+                                    <span class="item-quantity">2 bottles</span>
+                                </div>
+                                <div class="item-details">
+                                    <span class="expiry">Expires: Dec 15, 2024</span>
+                                    <span class="status low">Low Stock</span>
+                                </div>
+                            </div>
+                            <div class="demo-item-card">
+                                <div class="item-header">
+                                    <span class="item-icon">🍞</span>
+                                    <span class="item-name">Bread</span>
+                                    <span class="item-quantity">1 loaf</span>
+                                </div>
+                                <div class="item-details">
+                                    <span class="expiry">Expires: Dec 12, 2024</span>
+                                    <span class="status expiring">Expiring Soon</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="shopping">
+                        <div class="demo-header">
+                            <h3>Shopping List</h3>
+                            <button class="demo-btn">Add Item</button>
+                        </div>
+                        <div class="shopping-items">
+                            <div class="shopping-item">
+                                <input type="checkbox" checked>
+                                <span class="item-name">Milk</span>
+                                <span class="quantity">2 bottles</span>
+                                <i class="fas fa-trash"></i>
+                            </div>
+                            <div class="shopping-item">
+                                <input type="checkbox">
+                                <span class="item-name">Bread</span>
+                                <span class="quantity">1 loaf</span>
+                                <i class="fas fa-trash"></i>
+                            </div>
+                            <div class="shopping-item">
+                                <input type="checkbox">
+                                <span class="item-name">Eggs</span>
+                                <span class="quantity">12 eggs</span>
+                                <i class="fas fa-trash"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="settings">
+                        <div class="demo-header">
+                            <h3>Settings</h3>
+                        </div>
+                        <div class="settings-demo">
+                            <div class="setting-item">
+                                <span>Expiry Reminders</span>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <span>Shopping Reminders</span>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <span>Email Notifications</span>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits">
+        <div class="container">
+            <h2>Why Choose Pantry Organizer?</h2>
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <div class="benefit-icon">💰</div>
+                    <h3>Save Money</h3>
+                    <p>Reduce food waste and avoid buying duplicates. Save up to 30% on your grocery bills.</p>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">⏰</div>
+                    <h3>Save Time</h3>
+                    <p>Quick inventory checks and smart shopping lists save you hours every week.</p>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🌱</div>
+                    <h3>Reduce Waste</h3>
+                    <p>Track expiry dates and use items before they go bad. Help the environment.</p>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🍳</div>
+                    <h3>Better Cooking</h3>
+                    <p>Always know what you have available. Plan meals better and cook with confidence.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Transform Your Kitchen?</h2>
+            <p>Join thousands of users who have already simplified their kitchen management</p>
+            <div class="cta-buttons">
+                <a href="/signup.html" class="btn-primary">Get Started Free</a>
+                <a href="/login.html" class="btn-secondary">Already have an account?</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Pantry Organizer</h3>
+                    <p>Smart kitchen management for modern households</p>
+                    <p>📍 Kharar, Chandigarh, India</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="/">Home</a>
+                    <a href="/watch-demo.html">Watch Demo</a>
+                    <a href="/login.html">Login</a>
+                    <a href="/signup.html">Sign Up</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="/support.html">Contact Us</a>
+                    <a href="/privacy-policy.html">Privacy Policy</a>
+                    <a href="/terms-of-service.html">Terms of Service</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Pantry Organizer. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="scripts/watch-demo.js"></script>
+</body>
+</html> 
