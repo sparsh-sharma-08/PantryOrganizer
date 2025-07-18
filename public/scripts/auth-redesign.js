@@ -435,7 +435,7 @@ if (resetStep1) {
     resetMessage.textContent = '';
     
     try {
-      const response = await fetch('/api/auth/request-reset', {
+      const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -443,14 +443,29 @@ if (resetStep1) {
         body: JSON.stringify({ email })
       });
       
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        showModalMessage('Unexpected server response. Please try again.', 'error');
+        setButtonLoading(submitButton, false);
+        return;
+      }
       
       if (response.ok) {
         resetStep1.style.display = 'none';
         resetStep2.style.display = 'block';
         showModalMessage('OTP sent to your email!', 'success');
       } else {
-        showModalMessage(data.error || 'Failed to send OTP.', 'error');
+        let errorMessage = 'Failed to send OTP.';
+        if (typeof data.error === 'string') {
+          errorMessage = data.error;
+        } else if (typeof data.error === 'boolean') {
+          errorMessage = 'Failed to send OTP. Please try again.';
+        } else if (typeof data.message === 'string') {
+          errorMessage = data.message;
+        }
+        showModalMessage(errorMessage, 'error');
       }
     } catch (error) {
       safeErrorLog('Reset request error:', error);
@@ -491,7 +506,14 @@ if (resetStep2) {
         })
       });
       
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        showModalMessage('Unexpected server response. Please try again.', 'error');
+        setButtonLoading(submitButton, false);
+        return;
+      }
       
       if (response.ok) {
         showModalMessage('Password reset successfully!', 'success');
@@ -503,7 +525,15 @@ if (resetStep2) {
           resetStep2.reset();
         }, 2000);
       } else {
-        showModalMessage(data.error || 'Failed to reset password.', 'error');
+        let errorMessage = 'Failed to reset password.';
+        if (typeof data.error === 'string') {
+          errorMessage = data.error;
+        } else if (typeof data.error === 'boolean') {
+          errorMessage = 'Failed to reset password. Please try again.';
+        } else if (typeof data.message === 'string') {
+          errorMessage = data.message;
+        }
+        showModalMessage(errorMessage, 'error');
       }
     } catch (error) {
       safeErrorLog('Reset password error:', error);
