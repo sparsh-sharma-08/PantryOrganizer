@@ -15,10 +15,18 @@ document.addEventListener('DOMContentLoaded', function() {
     resetStep2.style.display = 'none';
     resetMessage.textContent = '';
   };
-  closeResetModal.onclick = closeResetModal2.onclick = function() {
-    resetModal.style.display = 'none';
-    resetMessage.textContent = '';
-  };
+  if (closeResetModal) {
+    closeResetModal.onclick = function() {
+      resetModal.style.display = 'none';
+      resetMessage.textContent = '';
+    };
+  }
+  if (closeResetModal2) {
+    closeResetModal2.onclick = function() {
+      resetModal.style.display = 'none';
+      resetMessage.textContent = '';
+    };
+  }
 
   resetStep1.onsubmit = async function(e) {
     e.preventDefault();
@@ -30,15 +38,30 @@ document.addEventListener('DOMContentLoaded', function() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ email })
     });
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch (jsonErr) {
+      resetMessage.style.color = 'red';
+      resetMessage.textContent = 'Unexpected server response. Please try again.';
+      return;
+    }
     if (res.ok) {
       resetMessage.style.color = 'green';
       resetMessage.textContent = 'OTP sent to your email.';
       resetStep1.style.display = 'none';
       resetStep2.style.display = '';
     } else {
+      let errorMessage = 'Error sending OTP.';
+      if (typeof data === 'object' && data !== null) {
+        if (typeof data.error === 'string') {
+          errorMessage = data.error;
+        } else if (typeof data.message === 'string') {
+          errorMessage = data.message;
+        }
+      }
       resetMessage.style.color = 'red';
-      resetMessage.textContent = data.error || 'Error sending OTP.';
+      resetMessage.textContent = errorMessage;
     }
   };
 
@@ -58,14 +81,29 @@ document.addEventListener('DOMContentLoaded', function() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ email, otp, newPassword })
     });
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch (jsonErr) {
+      resetMessage.style.color = 'red';
+      resetMessage.textContent = 'Unexpected server response. Please try again.';
+      return;
+    }
     if (res.ok) {
       resetMessage.style.color = 'green';
       resetMessage.textContent = 'Password reset successful! You can now log in.';
       setTimeout(() => { resetModal.style.display = 'none'; }, 2000);
     } else {
+      let errorMessage = 'Error resetting password.';
+      if (typeof data === 'object' && data !== null) {
+        if (typeof data.error === 'string') {
+          errorMessage = data.error;
+        } else if (typeof data.message === 'string') {
+          errorMessage = data.message;
+        }
+      }
       resetMessage.style.color = 'red';
-      resetMessage.textContent = data.error || 'Error resetting password.';
+      resetMessage.textContent = errorMessage;
     }
   };
 
