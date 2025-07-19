@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     email = document.getElementById('resetEmail').value.trim();
     resetMessage.style.color = 'black';
     resetMessage.textContent = 'Checking email...';
-    const res = await fetch('/api/auth/request-reset', {
+    const res = await fetch('/api/auth/forgot-password', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ email })
