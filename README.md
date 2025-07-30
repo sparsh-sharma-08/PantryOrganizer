@@ -77,7 +77,7 @@ Visit [http://localhost:3000](http://localhost:3000)
 MIT
 
 ## Contact
-For support, use the contact form in the app or email: support@yourdomain.com
+For support, use the contact form in the app or email: sparshsharma0825@gmail.com
 
 ---
 **Address:**
