@@ -7,41 +7,54 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import {
   Text,
   TextInput,
   Button,
   HelperText,
-  Chip,
+  IconButton,
 } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import storage from '../storage/store';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { TextInput as PaperTextInput } from 'react-native-paper';
+
+import storage from '../storage/store';
+import { theme } from '../theme';
+
+const { width } = Dimensions.get('window');
 
 export default function AddItem() {
   const nav = useNavigation<any>();
+  const route = useRoute<any>();
+  const editItem = route.params?.item;
 
-  const [name, setName] = useState('');
-  const [quantity, setQuantity] = useState<string>('1');
-  const [location, setLocation] = useState('');
-  const [labelsText, setLabelsText] = useState(''); // comma separated input
-  const [description, setDescription] = useState('');
-  const [expiry, setExpiry] = useState<Date | null>(null);
+  const [name, setName] = useState(editItem?.name || '');
+  const [quantity, setQuantity] = useState<string>(editItem?.quantity ? String(editItem?.quantity) : '1');
+  const [location, setLocation] = useState(editItem?.location || '');
+
+  // Handle labels: they might be an array or string in the store
+  const initialLabels = Array.isArray(editItem?.labels)
+    ? editItem.labels.join(', ')
+    : (editItem?.labels || '');
+  const [labelsText, setLabelsText] = useState(initialLabels);
+
+  const [description, setDescription] = useState(editItem?.description || '');
+  const [expiry, setExpiry] = useState<Date | null>(editItem?.expires ? new Date(editItem.expires) : null);
 
   const [showDate, setShowDate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const commonLocations = ['Pantry', 'Fridge', 'Freezer', 'Bathroom'];
-  const commonLabels = ['Dairy', 'Grains', 'Snacks', 'Produce', 'Beverages'];
+  const commonLocations = ['Pantry', 'Fridge', 'Freezer', 'Snack Bar'];
+  const commonLabels = ['Dairy', 'Grains', 'Produce', 'Meat', 'Beverages'];
 
   function toggleLabelChip(label: string) {
-    const arr = labelsText.split(',').map(s => s.trim()).filter(Boolean);
+    const arr = labelsText.split(',').map((s: string) => s.trim()).filter(Boolean);
     if (arr.includes(label)) {
-      setLabelsText(arr.filter(a => a !== label).join(', '));
+      setLabelsText(arr.filter((a: string) => a !== label).join(', '));
     } else {
       arr.push(label);
       setLabelsText(arr.join(', '));
@@ -58,20 +71,31 @@ export default function AddItem() {
     const qty = parseFloat(quantity) || 1;
     const labels = labelsText
       .split(',')
-      .map(s => s.trim())
+      .map((s: string) => s.trim())
       .filter(Boolean);
 
     setSaving(true);
     try {
-      await storage.add({
+      const payload = {
         name: name.trim(),
         quantity: qty,
-        location: location.trim() || undefined,
+        location: location.trim() || null,
         labels,
-        description: description.trim() || undefined,
-        expires: expiry ? expiry.toISOString() : undefined,
-        createdAt: Date.now(),
-      });
+        description: description.trim() || null,
+        expires: expiry ? expiry.toISOString() : null,
+      };
+
+      if (editItem) {
+        await storage.update({
+          id: editItem.id,
+          ...payload,
+        });
+      } else {
+        await storage.add({
+          ...payload,
+          createdAt: Date.now(),
+        });
+      }
       nav.goBack();
     } catch (e) {
       setError('Failed to save item.');
@@ -81,147 +105,307 @@ export default function AddItem() {
     }
   }
 
+  // Determine if a chip is selected
+  const isLabelSelected = (l: string) => labelsText.split(',').map((s: string) => s.trim()).includes(l);
+
   return (
     <KeyboardAvoidingView
       style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text variant="headlineSmall" style={styles.title}>Add item</Text>
-
-        {/* Item name — use TextInput.Icon with a render function */}
-        <PaperTextInput
-          label="Item name"
-          placeholder="e.g. Cheddar Cheese"
-          value={name}
-          onChangeText={setName}
-          mode="outlined"
-          style={styles.input}
-          left={<PaperTextInput.Icon icon={() => <MaterialCommunityIcons name="food-apple" size={20} color="#6b7280" />} />}
+      <View style={styles.header}>
+        <IconButton
+          icon="arrow-left"
+          size={24}
+          iconColor={theme.colors.text}
+          onPress={() => nav.goBack()}
+          style={{ marginLeft: -8 }}
         />
+        <Text style={styles.headerTitle}>{editItem ? 'Edit Item' : 'Add New Item'}</Text>
+        <View style={{ width: 40 }} />
+      </View>
 
-        <HelperText type="error" visible={!!error && !name.trim()}>
-          {(!name.trim() && error) ? error : ''}
-        </HelperText>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
 
-        <View style={styles.row}>
+        {/* Name Section */}
+        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+          <Text style={styles.sectionLabel}>What are we stocking?</Text>
           <TextInput
-            label="Quantity"
-            value={quantity}
-            onChangeText={setQuantity}
+            placeholder="Item name (e.g. Avocado)"
+            value={name}
+            onChangeText={setName}
             mode="outlined"
-            style={[styles.inputHalf, { marginRight: 8 }]}
-            keyboardType="numeric"
+            style={styles.mainInput}
+            outlineStyle={{ borderRadius: theme.borderRadius.m, borderColor: theme.colors.border }}
+            textColor={theme.colors.text}
+            placeholderTextColor={theme.colors.textSecondary}
+            left={<TextInput.Icon icon="food-apple-outline" color={theme.colors.primary} />}
           />
-          <PaperTextInput
-            label="Location"
-            value={location}
-            onChangeText={setLocation}
-            mode="outlined"
-            style={styles.inputHalf}
-            right={
-              location
-                ? undefined
-                : <PaperTextInput.Icon icon={() => <MaterialCommunityIcons name="chevron-down" size={20} color="#6b7280" />} />
-            }
-          />
-        </View>
+          <HelperText type="error" visible={!!error && !name.trim()}>
+            {(!name.trim() && error) ? error : ''}
+          </HelperText>
+        </Animated.View>
 
-        <View style={styles.suggestRow}>
-          {commonLocations.map(loc => (
-            <Chip
-              key={loc}
-              compact
-              onPress={() => setLocation(loc)}
-              style={[styles.suggestChip, location === loc && styles.suggestChipActive]}
-            >
-              {loc}
-            </Chip>
-          ))}
-        </View>
-
-        <TextInput
-          label="Labels (comma separated)"
-          placeholder="e.g. Dairy, Breakfast"
-          value={labelsText}
-          onChangeText={setLabelsText}
-          mode="outlined"
-          style={styles.input}
-        />
-
-        <View style={styles.suggestRow}>
-          {commonLabels.map(l => (
-            <Chip
-              key={l}
-              compact
-              onPress={() => toggleLabelChip(l)}
-              style={[styles.suggestChip, labelsText.split(',').map(s => s.trim()).includes(l) && styles.suggestChipActive]}
-            >
-              {l}
-            </Chip>
-          ))}
-        </View>
-
-        <TextInput
-          label="Description (optional)"
-          placeholder="Notes — bought at store, brand, pack size..."
-          value={description}
-          onChangeText={setDescription}
-          mode="outlined"
-          multiline
-          numberOfLines={3}
-          style={styles.input}
-        />
-
-        <TouchableOpacity onPress={() => setShowDate(true)} activeOpacity={0.8} style={styles.dateRow}>
-          <View>
-            <Text style={{ color: '#6b7280', fontWeight: '700' }}>Expiry date</Text>
-            <Text style={{ marginTop: 6, color: expiry ? '#111827' : '#9ca3af' }}>
-              {expiry ? expiry.toLocaleDateString() : 'Select a date'}
-            </Text>
+        <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.row}>
+          <View style={{ flex: 1, marginRight: 12 }}>
+            <Text style={styles.sectionLabel}>Quantity</Text>
+            <TextInput
+              value={quantity}
+              onChangeText={setQuantity}
+              mode="outlined"
+              keyboardType="numeric"
+              style={styles.input} // standard height
+              outlineStyle={{ borderRadius: theme.borderRadius.m, borderColor: theme.colors.border }}
+              textColor={theme.colors.text}
+              left={<TextInput.Icon icon="counter" color={theme.colors.textSecondary} />}
+            />
           </View>
-          <Button mode="outlined" onPress={() => setShowDate(true)}>Choose</Button>
-        </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sectionLabel}>Category</Text>
+            <TouchableOpacity onPress={() => setShowDate(true)} activeOpacity={0.8}>
+              <View style={[styles.dateInput, expiry && { borderColor: theme.colors.primary, backgroundColor: theme.colors.primary + '10' }]}>
+                <MaterialCommunityIcons
+                  name={expiry ? "calendar-check" : "calendar-blank-outline"}
+                  size={20}
+                  color={expiry ? theme.colors.primary : theme.colors.textSecondary}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={[styles.dateText, expiry && { color: theme.colors.primary, fontWeight: '600' }]}>
+                  {expiry ? expiry.toLocaleDateString() : 'Expiry Date'}
+                </Text>
+                {expiry && (
+                  <TouchableOpacity onPress={() => setExpiry(null)} hitSlop={10}>
+                    <MaterialCommunityIcons name="close-circle" size={16} color={theme.colors.primary} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
 
-        <DateTimePickerModal
-          isVisible={showDate}
-          mode="date"
-          onConfirm={(d: Date) => { setShowDate(false); setExpiry(d); }}
-          onCancel={() => setShowDate(false)}
-          minimumDate={new Date(2000, 0, 1)}
-          maximumDate={new Date(2100, 11, 31)}
-        />
+        {/* Location Section */}
+        <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.section}>
+          <Text style={styles.sectionLabel}>Where is it stored?</Text>
+          <View style={styles.chipRow}>
+            {commonLocations.map(loc => {
+              const isActive = location === loc;
+              return (
+                <TouchableOpacity
+                  key={loc}
+                  onPress={() => setLocation(isActive ? '' : loc)}
+                  style={[
+                    styles.chip,
+                    isActive && styles.chipActive
+                  ]}
+                >
+                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{loc}</Text>
+                </TouchableOpacity>
+              );
+            })}
+            <TextInput
+              placeholder="Or type a custom location..."
+              value={location}
+              onChangeText={setLocation}
+              mode="outlined"
+              style={[styles.input, { flex: 1, minWidth: 150 }]}
+              outlineStyle={{ borderRadius: theme.borderRadius.m, borderColor: theme.colors.border }}
+              dense
+            />
+          </View>
 
-        <View style={styles.actions}>
-          <Button mode="contained" onPress={onSave} loading={saving} style={styles.saveBtn}>
-            Save
-          </Button>
-          <Button mode="outlined" onPress={() => nav.goBack()} style={styles.cancelBtn}>
-            Cancel
-          </Button>
-        </View>
+        </Animated.View>
 
-        {error ? <HelperText type="error" visible>{error}</HelperText> : null}
+        {/* Labels Section */}
+        <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.section}>
+          <Text style={styles.sectionLabel}>Tags & Labels</Text>
+          <View style={styles.chipRow}>
+            {commonLabels.map(l => {
+              const active = isLabelSelected(l);
+              return (
+                <TouchableOpacity
+                  key={l}
+                  onPress={() => toggleLabelChip(l)}
+                  style={[styles.chip, active && styles.chipActive, { borderColor: active ? theme.colors.secondary : theme.colors.border, backgroundColor: active ? theme.colors.secondary : theme.colors.surface }]}
+                >
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{l}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <TextInput
+            placeholder="Add custom tags (comma separated)"
+            value={labelsText}
+            onChangeText={setLabelsText}
+            mode="outlined"
+            style={[styles.input, { marginTop: 8 }]}
+            outlineStyle={{ borderRadius: theme.borderRadius.m, borderColor: theme.colors.border }}
+            dense
+          />
+        </Animated.View>
+
+        {/* Notes */}
+        <Animated.View entering={FadeInDown.delay(500).duration(400)} style={styles.section}>
+          <Text style={styles.sectionLabel}>Notes</Text>
+          <TextInput
+            placeholder="Any extra details..."
+            value={description}
+            onChangeText={setDescription}
+            mode="outlined"
+            multiline
+            numberOfLines={3}
+            style={[styles.input, { height: 80 }]}
+            outlineStyle={{ borderRadius: theme.borderRadius.m, borderColor: theme.colors.border }}
+            textColor={theme.colors.text}
+          />
+        </Animated.View>
+
+        <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Floating Action / Bottom Bar */}
+      <Animated.View
+        entering={FadeIn.delay(600)}
+        style={styles.bottomBar}
+      >
+        <Button
+          mode="text"
+          onPress={() => nav.goBack()}
+          style={{ flex: 1, marginRight: 16 }}
+          labelStyle={{ color: theme.colors.textSecondary, fontWeight: '600' }}
+        >
+          Cancel
+        </Button>
+        <Button
+          mode="contained"
+          onPress={onSave}
+          loading={saving}
+          style={styles.saveBtn}
+          contentStyle={{ height: 50 }}
+          labelStyle={{ fontSize: 16, fontWeight: '700' }}
+          icon="check"
+        >
+          Save Item
+        </Button>
+      </Animated.View>
+
+      <DateTimePickerModal
+        isVisible={showDate}
+        mode="date"
+        onConfirm={(d: Date) => { setShowDate(false); setExpiry(d); }}
+        onCancel={() => setShowDate(false)}
+        minimumDate={new Date()}
+      />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff' },
-  container: { padding: 16, paddingBottom: 48 },
-  title: { marginBottom: 12, fontWeight: '800' },
-  input: { marginBottom: 12 },
-  row: { flexDirection: 'row' },
-  inputHalf: { flex: 1 },
-  suggestRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 },
-  suggestChip: { marginRight: 8, marginBottom: 8, backgroundColor: '#f3f4f6' },
-  suggestChipActive: { backgroundColor: '#2f6bf6', color: '#fff' },
-  dateRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e6e6e9', marginBottom: 16,
+  screen: { flex: 1, backgroundColor: theme.colors.background },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 16,
+    backgroundColor: theme.colors.background,
+    zIndex: 10,
   },
-  actions: { flexDirection: 'row', justifyContent: 'space-between' },
-  saveBtn: { flex: 1, marginRight: 8 },
-  cancelBtn: { flex: 1 },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+  container: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 40,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  mainInput: {
+    backgroundColor: theme.colors.surface,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  input: {
+    backgroundColor: theme.colors.surface,
+    fontSize: 15,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 24,
+  },
+  dateInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 50,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.m,
+    paddingHorizontal: 12,
+    backgroundColor: theme.colors.surface,
+    marginTop: 6, // align visually with text input
+  },
+  dateText: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    flex: 1,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  chipActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: theme.colors.textSecondary,
+  },
+  chipTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: theme.colors.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+    ...theme.shadows.float,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  saveBtn: {
+    flex: 2,
+    borderRadius: theme.borderRadius.l,
+    backgroundColor: theme.colors.primary,
+  },
 });

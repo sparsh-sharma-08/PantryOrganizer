@@ -194,7 +194,7 @@ export default function ItemsScreen() {
 
       <FlatList
         data={filteredSorted}
-        keyExtractor={(i: any) => i.id}
+        keyExtractor={(item, index) => item.id ? `${item.id}-${index}` : `items-${index}`}
         renderItem={({ item }) => (
           <ItemCardLarge
             item={item}

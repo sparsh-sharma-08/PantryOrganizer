@@ -18,8 +18,8 @@ export default function Header() {
             <MaterialCommunityIcons name="chef-hat" size={24} color="#fff" />
           </View>
           <View>
-            <Text style={styles.greeting}>Hello, Chef! 👋</Text>
-            <Text style={styles.subtitle}>Let's get cooking</Text>
+            <Text style={styles.greeting}>Hello, User! 👋</Text>
+            <Text style={styles.subtitle}>Let's stay organized</Text>
           </View>
         </View>
 

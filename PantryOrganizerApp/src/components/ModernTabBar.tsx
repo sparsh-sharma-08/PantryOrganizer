@@ -24,7 +24,7 @@ export default function ModernTabBar({ state, descriptors, navigation }: BottomT
         <View style={styles.container}>
             <View style={[styles.tabBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 }]}>
                 {state.routes.map((route, index) => {
-                    const isCenter = index === 2; // Center placeholder
+                    const isCenter = route.name === 'CenterPlaceholder';
                     if (isCenter) {
                         return (
                             <View key="center-fab" style={styles.centerContainer} pointerEvents="box-none">
@@ -45,6 +45,7 @@ export default function ModernTabBar({ state, descriptors, navigation }: BottomT
 
                     let iconName: any = 'circle';
                     if (route.name === 'Home') iconName = isFocused ? 'home' : 'home-outline';
+                    if (route.name === 'Plan') iconName = isFocused ? 'calendar-month' : 'calendar-month-outline';
                     if (route.name === 'Items') iconName = isFocused ? 'format-list-bulleted' : 'format-list-bulleted';
                     if (route.name === 'Shop') iconName = isFocused ? 'cart' : 'cart-outline';
                     if (route.name === 'Stats') iconName = isFocused ? 'chart-box' : 'chart-box-outline';
