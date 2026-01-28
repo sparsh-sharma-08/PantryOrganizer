@@ -82,30 +82,16 @@ export default function FamilyScreen() {
         if (!joinCode) return;
         setCreating(true);
         try {
-            // Find family by code
-            const q = query(collection(db, 'families'), where('inviteCode', '==', joinCode.trim().toUpperCase()));
-            const snapshot = await getDocs(q);
-
-            if (snapshot.empty) {
-                Alert.alert('Error', 'Invalid invite code.');
-                return;
-            }
-
-            const famDoc = snapshot.docs[0];
-
-            // Add user to family
-            await updateDoc(famDoc.ref, {
-                members: arrayUnion(user?.uid)
-            });
-
-            await updateDoc(doc(db, 'users', user?.uid!), {
-                familyId: famDoc.id
-            });
-
-            Alert.alert('Success', `Joined ${famDoc.data().name}!`);
+            const familyName = await storage.joinFamily(joinCode);
+            Alert.alert('Success', `Joined ${familyName}!`);
             loadFamily();
         } catch (e: any) {
-            Alert.alert('Error', e.message);
+            console.error(e);
+            if (e.code === 'permission-denied') {
+                Alert.alert('Permission Error', 'You cannot join this family. Ask the owner to check their settings or ensuring you are allowed.');
+            } else {
+                Alert.alert('Error', e.message);
+            }
         } finally {
             setCreating(false);
         }

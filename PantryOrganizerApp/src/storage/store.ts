@@ -14,7 +14,8 @@ import {
   getDocs,
   arrayUnion,
   arrayRemove,
-  writeBatch
+  writeBatch,
+  where
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../firebaseConfig';
@@ -707,20 +708,6 @@ async function leaveFamily(): Promise<void> {
   await updateDoc(userRef, { familyId: null });
 }
 
-async function deleteFamily(): Promise<void> {
-  if (!currentUserId) throw new Error("No user");
-  if (!currentFamilyId) throw new Error("Not in a family");
-
-  // 1. Delete Family Document
-  await deleteDoc(doc(db, 'families', currentFamilyId));
-
-  // 2. Clear familyId from User (and ideally all members, but start with current)
-  const userRef = doc(db, 'users', currentUserId);
-  await updateDoc(userRef, { familyId: null });
-
-  // Ideally we would recursively delete, but client-side recursive delete is expensive.
-}
-
 async function copyToFamily(newFamilyId: string): Promise<void> {
   if (!currentUserId) throw new Error("No user");
 
@@ -767,6 +754,88 @@ async function copyToFamily(newFamilyId: string): Promise<void> {
 }
 
 // Export new functions
+// JOIN FAMILY
+async function joinFamily(inviteCode: string): Promise<string> {
+  if (!currentUserId) throw new Error("No user");
+
+  const code = inviteCode.trim().toUpperCase();
+
+  // 1. Find family by code
+  const q = query(collection(db, 'families'), where('inviteCode', '==', code));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    throw new Error("Invalid invite code");
+  }
+
+  const famDoc = snapshot.docs[0];
+  const familyData = famDoc.data();
+  const familyId = famDoc.id;
+
+  // 2. Check if already a member
+  if (familyData.members && familyData.members.includes(currentUserId)) {
+    // Already a member, just update local user state if needed
+    const userRef = doc(db, 'users', currentUserId);
+    await updateDoc(userRef, { familyId: familyId });
+    return familyData.name;
+  }
+
+  // 3. Add user to family
+  await updateDoc(famDoc.ref, {
+    members: arrayUnion(currentUserId)
+  });
+
+  // 4. Update User Doc & Copy items
+  await copyToFamily(familyId);
+
+  const userRef = doc(db, 'users', currentUserId);
+  await updateDoc(userRef, { familyId: familyId });
+
+  return familyData.name;
+}
+
+// DELETE FAMILY (Recursive)
+async function deleteFamily(): Promise<void> {
+  if (!currentUserId) throw new Error("No user");
+  if (!currentFamilyId) throw new Error("Not in a family");
+
+  console.log(`[Store] Deleting family ${currentFamilyId}...`);
+
+  // 1. Delete all Pantry Items
+  const pantryCol = collection(db, 'pantries', currentFamilyId, 'items');
+  const pantrySnap = await getDocs(pantryCol);
+  const batch = writeBatch(db);
+  let count = 0;
+
+  pantrySnap.forEach(doc => {
+    batch.delete(doc.ref);
+    count++;
+  });
+
+  // 2. Delete all Shopping List Items
+  const shopCol = collection(db, 'shoppingLists', currentFamilyId, 'items');
+  const shopSnap = await getDocs(shopCol);
+
+  shopSnap.forEach(doc => {
+    batch.delete(doc.ref);
+    count++;
+  });
+
+  if (count > 0) {
+    await batch.commit();
+    console.log(`[Store] Deleted ${count} sub-items.`);
+  }
+
+  // 3. Delete Family Document
+  await deleteDoc(doc(db, 'families', currentFamilyId));
+
+  // 4. Clear familyId from User
+  const userRef = doc(db, 'users', currentUserId);
+  await updateDoc(userRef, { familyId: null });
+
+  console.log(`[Store] Family deleted.`);
+}
+
 export default {
   getAll,
   add,
@@ -787,5 +856,6 @@ export default {
   cleanupHistory,
   leaveFamily,
   deleteFamily,
-  copyToFamily
+  copyToFamily,
+  joinFamily
 };
