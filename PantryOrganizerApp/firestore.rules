@@ -28,24 +28,27 @@ service cloud.firestore {
 
     // --- Families ---
     match /families/{familyId} {
-      // Allow any auth user to create a family
       allow create: if isSignedIn();
       
-      // key change: Allow read/list to everyone signed in (needed to query by invite code)
-      allow read: if isSignedIn();
+      // Allow read if you are a member OR if you are looking it up by invite code (needed for join)
+      // Note: 'list' permissions might be needed for broad queries, 
+      // but 'read' usually covers get() and basic queries if you know the ID.
+      // For Invite Code query, we need to allow list/read generally to signed in users, 
+      // OR we strictly scope it. For simplicity in this app:
+      allow read: if isSignedIn(); 
       
-      // Allow update if you are a member OR if you are adding yourself (joining)
+      // Update: 
+      // 1. Members can update (e.g. edit name)
+      // 2. Non-members can update ONLY if they are adding themselves (Joining)
       allow update: if isSignedIn() && (
         request.auth.uid in resource.data.members || 
         request.auth.uid in request.resource.data.members
       );
       
-      // key change: Allow owner to delete
       allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerId;
     }
 
     // --- Pantries (Items + History + MealPlans) ---
-    // This efficiently covers BOTH private lists (id=uid) and family lists (id=familyId)
     match /pantries/{id}/items/{itemId} {
       allow read, write: if canAccessPantry(id);
     }

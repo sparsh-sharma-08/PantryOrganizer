@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.PantryOrganizerApp"
+      "bundleIdentifier": "com.pantryorganizer.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.PantryOrganizerApp"
+      "package": "com.pantryorganizer.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,6 +33,11 @@
       "@react-native-community/datetimepicker",
       "expo-web-browser",
       "expo-mail-composer"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "63bcd034-32a3-4732-a4c7-3f747f4f4038"
+      }
+    }
   }
 }

@@ -129,10 +129,7 @@ function startListeners(uid: string, familyId: string | null) {
         notify();
       }
     }, (e) => {
-      // Legacy path might not exist or have permissions. Safe to ignore if main path works.
-      if (e.code === 'permission-denied') {
-        console.log('[Store] Legacy path access denied (expected if migrated).');
-      } else {
+      if (e.code !== 'permission-denied') {
         console.warn('[Store] Legacy Pantry listener error', e);
       }
     });
@@ -155,6 +152,11 @@ function startListeners(uid: string, familyId: string | null) {
     shoppingItems = newItems;
     notify();
   }, (e) => console.warn('[Store] Shopping listener error', e));
+
+  // Run Self-Repair check if in a family
+  if (familyId) {
+    verifyFamilyIntegrity(familyId, uid).catch(e => console.warn('[Store] Integrity check failed', e));
+  }
 
   // Also restart meal plan listener if needed
   restartMealPlanListener();
@@ -836,6 +838,28 @@ async function deleteFamily(): Promise<void> {
   console.log(`[Store] Family deleted.`);
 }
 
+// SELF-REPAIR Code for Production
+async function verifyFamilyIntegrity(familyId: string, userId: string) {
+  try {
+    const familyRef = doc(db, 'families', familyId);
+    const snap = await getDoc(familyRef);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      const members = data.members || [];
+
+      if (!members.includes(userId)) {
+        console.log('[Store] SELF-REPAIR: User Missing from Family Members. Fixing...');
+        await updateDoc(familyRef, {
+          members: arrayUnion(userId)
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('[Store] Self-repair failed (likely permission/network)', e);
+  }
+}
+
 export default {
   getAll,
   add,
@@ -857,5 +881,6 @@ export default {
   leaveFamily,
   deleteFamily,
   copyToFamily,
-  joinFamily
+  joinFamily,
+  verifyFamilyIntegrity
 };
