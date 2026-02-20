@@ -23,6 +23,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import storage from '../storage/store';
 import { theme } from '../theme';
+import { scheduleExpiryReminder } from '../services/NotificationService';
 
 const { width } = Dimensions.get('window');
 
@@ -90,11 +91,17 @@ export default function AddItem() {
           id: editItem.id,
           ...payload,
         });
+        if (expiry) {
+          await scheduleExpiryReminder(name, expiry);
+        }
       } else {
         await storage.add({
           ...payload,
           createdAt: Date.now(),
         });
+        if (expiry) {
+          await scheduleExpiryReminder(name, expiry);
+        }
       }
       nav.goBack();
     } catch (e) {

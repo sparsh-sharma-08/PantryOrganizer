@@ -11,6 +11,7 @@ import storage from '../storage/store';
 import ItemCardLarge from '../components/ItemCardLarge';
 import QuantityAdjustmentModal from '../components/QuantityAdjustmentModal';
 import { theme } from '../theme';
+import { scheduleLowStockReminder } from '../services/NotificationService';
 
 const { width } = Dimensions.get('window');
 
@@ -243,7 +244,12 @@ export default function PantryList() {
               }}
               onToggleCart={async () => { await storage.update({ ...item, onShoppingList: !item.onShoppingList }); }}
               onIncrement={async () => { await storage.adjustQuantity(item.id, 1); }}
-              onDecrement={async () => { await storage.adjustQuantity(item.id, -1); }}
+              onDecrement={async () => {
+                await storage.adjustQuantity(item.id, -1);
+                if (item.quantity - 1 <= 2) {
+                  await scheduleLowStockReminder(item.name);
+                }
+              }}
               onLongPressQuantity={() => {
                 setAdjItem(item);
                 setAdjModalVisible(true);

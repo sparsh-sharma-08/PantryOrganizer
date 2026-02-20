@@ -98,7 +98,30 @@ function RootNavigation() {
   );
 }
 
+import * as Notifications from 'expo-notifications';
+import { registerForPushNotificationsAsync, scheduleMealPrepReminder, scheduleShoppingListReminder } from './src/services/NotificationService';
+
 export default function App() {
+  React.useEffect(() => {
+    registerForPushNotificationsAsync();
+    // Schedule default reminders
+    scheduleMealPrepReminder();
+    scheduleShoppingListReminder();
+
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received:', notification);
+    });
+
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log('Notification response:', response);
+    });
+
+    return () => {
+      subscription.remove();
+      responseSubscription.remove();
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <PaperProvider>
